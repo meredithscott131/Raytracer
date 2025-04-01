@@ -3,7 +3,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 Model::Model() {
-
+    //not having this following line was causing a memory allocation error... 
+    scenegraph = NULL;
 }
 
 Model::~Model() {
