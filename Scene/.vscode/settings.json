@@ -1,10 +1,15 @@
 {
-    "makefile.makefilePath": "C:\\Users\\Lu\\Desktop\\cs4300\\assignment5laeurglsiufdgvjsiufd\\Scene\\Makefile",
+    "makefile.makefilePath": "",
     "makefile.makePath": "mingw32-make",
     "makefile.launchConfigurations": [
         {
             "cwd": "c:\\Users\\Lu\\Desktop\\cs4300\\assignment5laeurglsiufdgvjsiufd\\Scene",
             "binaryPath": "c:\\Users\\Lu\\Desktop\\cs4300\\assignment5laeurglsiufdgvjsiufd\\Scene\\Scene.exe",
+            "binaryArgs": []
+        },
+        {
+            "cwd": "c:\\Users\\mered\\OneDrive - Northeastern University\\Documents\\NEU\\2025 Spring\\CS4300 Computer Graphics\\cs4300\\CS4300-RayTracer\\Scene",
+            "binaryPath": "c:\\Users\\mered\\OneDrive - Northeastern University\\Documents\\NEU\\2025 Spring\\CS4300 Computer Graphics\\cs4300\\CS4300-RayTracer\\Scene\\Scene.exe",
             "binaryArgs": []
         }
     ]

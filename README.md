@@ -1,4 +1,4 @@
-# Assignment 5: Lights and Textures
+# Assignment 6: Ray Tracing
 
 ### Team
 Thomas Yi and Meredith Scott
@@ -6,33 +6,10 @@ Thomas Yi and Meredith Scott
 
 ## Working Features
 
-### Lighting
-- A light can be added to any node of the scene graph in respect to the coordinate system of the node
-- properties of a light can be specified
-- phong shading is incorperated
-- a node has the ability to store multiple lights
-- drawing a leaf now passes material properties
-- lights are converted to view coordinate system
-
-### Texturing: 
--Textures are brought in as P3 ASCII PPM files, and textures can be specified similar to instances.
--LeafNode stores textures that it uses
--ALL textures use mipmapping
-
-Texturing Breakdown - at least 2 instances Rectangles, Spheres, and Cylinders (not textured great D: ) are textured
-    - Rectangles : Ground, Walls, Roof
-    - Spheres : Skin on Humanoid's shoulder (it ends up being too small to see but the texture is there)
-    - Cylinders : Turret bottom half and turret top half
-
 
 ## Meredith's Contributions
-- Everything in Working Features of Lighting
-- Created Spot Light 
-- Added material properties to lights.
 
 ## Thomas's Contributions
- - Integrated phong lighting onto Scenegraph
- - Everything in Working Features of Texturing
 
 
 ### Texture Citation:
