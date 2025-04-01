@@ -1,0 +1,37 @@
+#instances: 
+instance sphere models/sphere.obj
+
+
+group full-scene full-scene add-lights spotlight 0.1 0.1 0.1 0.8 0.0 0.0 0.8 0.0 0.0 0 300 230 25 1 0 1 end-lights
+
+
+
+
+
+
+#second human, crossed arms at the door, looking at their waving partner
+
+translate t-human-2 t-human-2 14 0 30 add-lights nolights end-lights
+add-child t-human-2 full-scene
+
+scale s-human-2 s-human-2 50 50 50 add-lights nolights end-lights
+add-child s-human-2 t-human-2
+
+
+rotate r-human2 r-human-2 90 0 1 0 add-lights nolights end-lights 
+add-child r-human-2 s-human-2
+
+
+import human-2 scenegraphmodels/humanoid-crossed-arms.txt
+add-child human-2 s-human-2
+
+
+#bringing the building into the scene
+scale s-building s-building 1.5 1.5 1.5 add-lights nolights end-lights
+add-child s-building full-scene 
+
+import building scenegraphmodels/building.txt 
+add-child building s-building
+
+
+assign-root full-scene

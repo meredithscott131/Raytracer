@@ -1,0 +1,225 @@
+#object instances
+instance box models/box.obj
+instance cylinder models/cylinder.obj
+instance cone models/cone.obj
+
+#textures:
+texture grass textures/Grass.ppm
+texture brick textures/brick.ppm
+texture tiles textures/tiles.ppm
+
+#materials for the ground, building, and turret
+material ground-mat
+emission 0 0 0
+ambient 0.5 0.5 0.5
+diffuse 0.1 0.1 0.1
+specular 0 0 0
+shininess 0.1
+end-material  
+
+material building-mat
+emission 0 0 0
+ambient 0.7 0.2 0.2
+diffuse 0.1 0.1 0.1
+specular 0 0 0
+shininess 0.1
+end-material
+
+material turret-mat
+emission 0 0 0
+ambient 0.2 0.2 0.7
+diffuse 0.1 0.1 0.1
+specular 0 0 0
+shininess 1
+end-material
+
+#root group
+group root root add-lights nolights end-lights
+assign-root root
+
+#The Ground
+scale scale-ground scale-ground 100 2 100 add-lights nolights end-lights
+add-child scale-ground root
+
+leaf ground ground instanceof box add-lights nolights end-lights
+assign-material ground ground-mat
+assign-texture ground grass
+add-child ground scale-ground
+
+#Building Base
+translate translate-building translate-building 0 20 0 add-lights nolights end-lights
+add-child translate-building root
+
+group building-group building-group add-lights nolights end-lights
+add-child building-group translate-building
+
+scale scale-building scale-building 35 40 30 add-lights nolights end-lights
+add-child scale-building building-group  
+
+leaf building building instanceof box add-lights nolights end-lights
+assign-material building building-mat
+assign-texture building brick
+add-child building scale-building
+
+#Turret Group 
+group turret-group turret-group add-lights nolights end-lights
+add-child turret-group building-group  # Attach it to the building
+
+#First Turret Cylinder 
+translate translate-turret translate-turret 0 30 0 add-lights nolights end-lights
+add-child translate-turret turret-group  
+
+scale scale-turret scale-turret 8 20 8 add-lights nolights end-lights
+add-child scale-turret translate-turret  
+
+leaf turret turret instanceof cylinder add-lights nolights end-lights
+assign-material turret turret-mat
+assign-texture turret brick
+add-child turret scale-turret
+
+#Second Turret Cylinder (It should look like an extrusion of the top half of the bottom cylinder)
+translate translate-top-turret translate-top-turret 0 45 0 add-lights nolights end-lights
+add-child translate-top-turret turret-group  
+
+scale scale-top-turret scale-top-turret 10 8 10 add-lights nolights end-lights
+add-child scale-top-turret translate-top-turret  
+
+leaf top-turret top-turret instanceof cylinder add-lights nolights end-lights
+assign-material top-turret turret-mat
+assign-texture top-turret brick
+add-child top-turret scale-top-turret
+
+#Battlement Material
+material battlement-mat
+emission 0 0 0
+ambient 0.6 0.3 0.1
+diffuse 0.1 0.1 0.1
+specular 0 0 0
+shininess 0.1
+end-material
+
+#Battlements 
+group battlement-group battlement-group add-lights nolights end-lights
+add-child battlement-group turret-group  
+
+#First Battlement 
+translate translate-battlement1 translate-battlement1 8 58 2.5 add-lights nolights end-lights
+add-child translate-battlement1 battlement-group
+
+rotate rotate-battlement1 rotate-battlement1 90 0 1 0 add-lights nolights end-lights
+add-child rotate-battlement1 translate-battlement1
+
+scale scale-battlement1 scale-battlement1 3 5 1.5 add-lights nolights end-lights
+add-child scale-battlement1 rotate-battlement1
+
+leaf battlement1 battlement1 instanceof box add-lights nolights end-lights
+assign-material battlement1 battlement-mat  
+add-child battlement1 scale-battlement1
+
+#Second Battlement (opposite side of battlement1)
+translate translate-battlement2 translate-battlement2 -7 58 2.5 add-lights nolights end-lights
+add-child translate-battlement2 battlement-group
+
+rotate rotate-battlement2 rotate-battlement2 -90 0 1 0 add-lights nolights end-lights
+add-child rotate-battlement2 translate-battlement2
+
+scale scale-battlement2 scale-battlement2 3 5 1.5 add-lights nolights end-lights
+add-child scale-battlement2 rotate-battlement2
+
+leaf battlement2 battlement2 instanceof box add-lights nolights end-lights
+assign-material battlement2 battlement-mat  # Same contrasting color
+add-child battlement2 scale-battlement2
+
+#Third Battlement
+translate translate-battlement3 translate-battlement3 -0.5 58 10 add-lights nolights end-lights
+add-child translate-battlement3 battlement-group
+
+scale scale-battlement3 scale-battlement3 3 5 1.5 add-lights nolights end-lights
+add-child scale-battlement3 translate-battlement3
+
+leaf battlement3 battlement3 instanceof box add-lights nolights end-lights
+assign-material battlement3 battlement-mat
+add-child battlement3 scale-battlement3
+
+#Fourth Battlement 
+translate translate-battlement4 translate-battlement4 -0.5 58 -5 add-lights nolights end-lights
+add-child translate-battlement4 battlement-group
+
+scale scale-battlement4 scale-battlement4 3 5 1.5 add-lights nolights end-lights
+add-child scale-battlement4 translate-battlement4
+
+leaf battlement4 battlement4 instanceof box add-lights nolights end-lights
+assign-material battlement4 battlement-mat
+add-child battlement4 scale-battlement4
+
+#Roof Material
+material roof-mat
+emission 0 0 0
+ambient 0.4 0.2 0.1 
+diffuse 0.1 0.1 0.1
+specular 0 0 0
+shininess 0.1
+end-material
+
+
+
+#Roof Group (The roof will be two slanted rectangles that sit on top of the buildinh cube)
+group roof-group roof-group add-lights nolights end-lights
+add-child roof-group building-group  
+
+#First Roof Piece
+translate translate-roof1 translate-roof1 0 23 10 add-lights nolights end-lights
+add-child translate-roof1 roof-group
+
+rotate rotate-roof1 rotate-roof1 25 1 0 0 add-lights nolights end-lights
+add-child rotate-roof1 translate-roof1
+
+scale scale-roof1 scale-roof1 35 2 20 add-lights nolights end-lights
+add-child scale-roof1 rotate-roof1
+
+leaf roof1 roof1 instanceof box add-lights nolights end-lights
+assign-material roof1 roof-mat
+assign-texture roof1 tiles
+add-child roof1 scale-roof1
+
+#Second Roof Piece
+translate translate-roof2 translate-roof2 0 23 -10 add-lights nolights end-lights
+add-child translate-roof2 roof-group
+
+rotate rotate-roof2 rotate-roof2 -25 1 0 0 add-lights nolights end-lights
+add-child rotate-roof2 translate-roof2
+
+scale scale-roof2 scale-roof2 35 2 20 add-lights nolights end-lights
+add-child scale-roof2 rotate-roof2
+
+leaf roof2 roof2 instanceof box add-lights nolights end-lights
+assign-material roof2 roof-mat
+assign-texture roof2 tiles
+add-child roof2 scale-roof2
+
+
+#Door Material 
+material door-mat
+emission 0 0 0
+ambient 0.0 0.6 0.0 
+diffuse 0.1 0.1 0.1
+specular 0 0 0
+shininess 0.1
+end-material
+
+#Door Group
+group door-group door-group add-lights nolights end-lights
+add-child door-group building-group  
+
+translate translate-door translate-door 0 -5 16 add-lights nolights end-lights
+add-child translate-door door-group
+
+scale scale-door scale-door 5 12 1 add-lights nolights end-lights
+add-child scale-door translate-door
+
+leaf door door instanceof box add-lights nolights end-lights
+assign-texture door grass
+
+assign-material door door-mat
+add-child door scale-door
+
