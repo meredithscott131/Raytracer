@@ -5,6 +5,9 @@
 Model::Model() {
     //not having this following line was causing a memory allocation error... 
     scenegraph = NULL;
+
+    //starting the Rendermode as OPENGL;
+    mode = OPENGL;
 }
 
 Model::~Model() {
@@ -174,4 +177,20 @@ vector<string> Model::getTextureNames() {
 
 util::TextureImage* Model::getTextureObject(const string& name) {
     return scenegraph->getTextureObject(name);
+}
+
+
+
+//toggling between the two rendermodes
+void Model::toggleRenderMode(){
+    if (mode == OPENGL) {
+        mode = RAYTRACE;
+    }
+    else {
+        mode = OPENGL;
+    }
+}
+
+RenderMode Model::getRenderMode() const {
+    return mode; 
 }

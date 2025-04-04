@@ -201,7 +201,16 @@ void Controller::onkey(int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_1) view.changeCameraMode(View::GLOBAL);
         else if (key == GLFW_KEY_2) view.changeCameraMode(View::CHOPPER);
         else if (key == GLFW_KEY_3) view.changeCameraMode(View::DRONE);
+
+
+        //changing between render modes
+        if (key == GLFW_KEY_S) {
+            model.toggleRenderMode();
+            std::cout << "Switched to "<< (model.getRenderMode() == OPENGL ? "OpenGL" : "Ray Tracing") <<" mode.\n";
+        }
     } 
+
+
 }
 
 void Controller::reshape(int width, int height) 

@@ -9,6 +9,10 @@ using namespace std;
 
 #include "Material.h"
 
+//getting ready to toggle between the two render modes
+enum RenderMode {OPENGL, RAYTRACE};
+
+
 class Model 
 {
 public:
@@ -40,6 +44,9 @@ public:
     vector<string> getTextureNames();
     util::TextureImage* getTextureObject(const string& name);
 
+    void toggleRenderMode();
+    RenderMode getRenderMode() const;
+
 private:
     sgraph::IScenegraph *scenegraph;
 
@@ -59,5 +66,6 @@ private:
     float droneLeftRightRot = 0.0f;
     float droneUpDownRot = 0.0f;
 
+    RenderMode mode;
 };
 #endif
