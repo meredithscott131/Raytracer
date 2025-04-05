@@ -9,6 +9,7 @@ Thomas Yi and Meredith Scott
 
 ## Meredith's Contributions
 - 1.2 Setting up the basic ray tracing
+- Designed ray tracing functions
 
 ## Thomas's Contributions
 - 1.1 Laying the foundation

@@ -59,7 +59,6 @@ public:
 
     void raytrace(Model& model);
 
-    
 private: 
 
     GLFWwindow* window;
@@ -85,10 +84,16 @@ private:
 
     void initObjects(Model& model);
     void initShaderVariables(vector<util::Light>& lights);
-    void setCamera(TypeOfCamera mode, Model& model);
+    void setCamera(TypeOfCamera mode, Model &model);
 
     vector<LightLocation> lightLocations;
 
+    // Raytracing functions
+    glm::vec4 getColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
+    glm::vec4 getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>> &lights);
+    glm::vec4 getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
+    glm::vec4 getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
+    bool isInShadow(HitRecord hitRecord, vector<vector<util::Light>> &lights);
 };
 
 #endif

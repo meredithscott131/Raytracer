@@ -13,6 +13,7 @@ using namespace std;
 #include <Light.h>
 #include "VertexAttrib.h"
 #include "sgraph/LeafNode.h"
+#include "HitRecord.h"
 
 
 View::View() {}
@@ -311,6 +312,33 @@ void View::raytrace(Model& model) {
     out << "P3" << std::endl;
     out << window_dimensions[0] << " " << window_dimensions[1] << std::endl;
     out << "255" << std::endl;
+
+    // TODO
+}
+
+// Returns RGB color values between 0 and 1
+glm::vec4 View::getColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
+    float a = hitRecord.material.getAbsorption();
+    float r = hitRecord.material.getReflection();
+    float t = hitRecord.material.getTransparency();
+
+    // TODO
+}
+
+glm::vec4 View::getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
+    // TODO
+}
+
+glm::vec4 View::getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
+    // TODO
+}
+
+glm::vec4 View::getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
+    // TODO
+}
+
+bool View::isInShadow(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
+    // TODO
 }
 
 // Set the camera position given the current camera mode
