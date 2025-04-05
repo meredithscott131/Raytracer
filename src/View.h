@@ -19,6 +19,8 @@
 #include "Model.h"
 
 #include <stack>
+#include "ConsoleScenegraphRenderer.h"
+#include "RaytracerRenderer.h"
 using namespace std;
 
 
@@ -88,12 +90,14 @@ private:
 
     vector<LightLocation> lightLocations;
 
-    // Raytracing functions
+    // Raytracing
     glm::vec4 getColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
     glm::vec4 getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>> &lights);
     glm::vec4 getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
     glm::vec4 getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
     bool isInShadow(HitRecord hitRecord, vector<vector<util::Light>> &lights);
+    stack<glm::mat4> raytraceModelview;
+    sgraph::RaytracerRenderer *raytracerRenderer;
 };
 
 #endif

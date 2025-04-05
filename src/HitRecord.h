@@ -27,6 +27,9 @@ public:
         hit = false;
     }
 
+    HitRecord(float _t, const glm::vec3& _point, const glm::vec3& _normal, const util::Material& _material) 
+        : t(_t), point(_point), normal(glm::normalize(_normal)), material(_material), hit(true) {}
+
     void update(float _t, const glm::vec3& _point, const glm::vec3& _normal, const util::Material& _material) {
         t = _t;
         point = _point;

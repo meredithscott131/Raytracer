@@ -9,11 +9,12 @@ using namespace std;
 #include <glm/gtc/type_ptr.hpp>
 #include "sgraph/GLScenegraphRenderer.h"
 #include "sgraph/ConsoleScenegraphRenderer.h"
-#include "sgraph/GLScenegraphLighter.h" // Ensure this header is included
+#include "sgraph/GLScenegraphLighter.h"
 #include <Light.h>
 #include "VertexAttrib.h"
 #include "sgraph/LeafNode.h"
 #include "HitRecord.h"
+#include "sgraph/SGNodeVisitor.h"
 
 
 View::View() {}
@@ -313,7 +314,38 @@ void View::raytrace(Model& model) {
     out << window_dimensions[0] << " " << window_dimensions[1] << std::endl;
     out << "255" << std::endl;
 
-    // TODO
+    // loop through each pixel in the window
+    for (int h = 0; h < window_dimensions[1]; h++) {
+        for (int w = 0; w < window_dimensions[0]; w++) {
+            float x = (float)w / (0.5f * window_dimensions[0]);
+            float y = (0.5f * window_dimensions[1]) - (float)h;
+            float z = -(0.5f * window_dimensions[1]) / tan(cameraFOV/2);
+
+            glm::vec4 origin(0.0f, 0.0f, 0.0f, 1.0f);
+            glm::vec4 direction(x, y, z, 0.0f);
+
+            while (!raytraceModelview.empty()) {
+                raytraceModelview.pop();
+            }
+
+            // Send raytracer renderer to the scenegraph
+            raytraceModelview.push(glm::mat4(1.0f));
+            raytraceModelview.top() = raytraceModelview.top() * glm::lookAt(cameraPosition,cameraTarget,glm::vec3(0.0f,1.0f,0.0f));
+            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, objects, shaderLocations, origin, direction);
+            sg->getRoot()->accept(raytracerRenderer);
+
+            HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer *>(raytracerRenderer)->getHitRecord();
+
+            if (isinf(hitRecord.t)) {
+                // No hit, set pixel to white
+                out << "255 255 255 ";
+            } else {
+                // Hit, set pixel to black
+                out << "0 0 0 ";
+            }
+        }
+        out << std::endl;
+    }
 }
 
 // Returns RGB color values between 0 and 1
