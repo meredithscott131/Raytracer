@@ -56,6 +56,9 @@ public:
 
     void changeCameraMode(TypeOfCamera mode);
     void updateDroneTransform(const glm::mat4& transform);
+
+    void raytrace(Model& model);
+
     
 private: 
 

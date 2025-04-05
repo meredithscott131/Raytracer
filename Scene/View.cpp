@@ -302,6 +302,17 @@ void View::display(Model& model)
     lightLocations.clear();
 }
 
+// Saves the current scene to a png file via raytracing
+void View::raytrace(Model& model) {
+
+    // Set up file output
+    ofstream out;
+    out.open("src/images/raytraced_scene.png");
+    out << "P3" << std::endl;
+    out << window_dimensions[0] << " " << window_dimensions[1] << std::endl;
+    out << "255" << std::endl;
+}
+
 // Set the camera position given the current camera mode
 void View::setCamera(TypeOfCamera mode, Model& model) {
     glm::mat4 viewTransform;

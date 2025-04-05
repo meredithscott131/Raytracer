@@ -27,7 +27,7 @@ Controller::Controller(Model& m,View& v) {
 void Controller::initScenegraph() {
     //loading the scenegraph from the file
     cout << "Loading scenegraph from file" << endl;
-    ifstream inFile("scenegraphmodels/Scene.txt");
+    ifstream inFile("scenegraphmodels/test.txt");
 
     sgraph::ScenegraphImporter importer;
     IScenegraph *scenegraph = importer.parse(inFile);
@@ -165,10 +165,15 @@ void Controller::onkey(int key, int scancode, int action, int mods) {
             model.adjustPropellerSpeed(50.0f);
             cout << "Propeller Speed Increased" << endl;
         }
-        //decrease propeller speed
+
+        //toggle between OpenGL and Ray Tracing
         else if (key == GLFW_KEY_S) {
-            model.adjustPropellerSpeed(-50.0f);
-            cout << "Propeller Speed Decreased" << endl;
+            model.toggleRenderMode();
+
+            // If raytracing mode, save the scene as a png file
+            if (model.getRenderMode() == RAYTRACE) {
+                view.raytrace(model);
+            }
         }
         //start roll animation
         else if (key == GLFW_KEY_J) {
