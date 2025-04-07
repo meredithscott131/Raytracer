@@ -1,12 +1,17 @@
-#ifdef _BOX_H_
-#define _BOX_H_
+#ifndef __BOX_H__
+#define __BOX_H__
 
 class Box {
     public:
-        Box();
-        ~Box();
+        Box() {};
+        ~Box() {};
 
-        Box (Box &t);
+        Box (Box &t) {
+            vmin = t.vmin;
+            vmax = t.vmax;
+            originMin = t.originMin;
+            originMax = t.originMax;
+        }
 
         // Calculates the intersection times of the ray with the box
         bool calcTimes(glm::vec4 origin, glm::vec4 direction) {
@@ -24,8 +29,8 @@ class Box {
                 std::swap(t_min_y, t_max_y);
             }
 
-            tmin = (tMin_x > t_min_y) ? t_min_x : t_min_y;
-            tmax = (tMax_x < t_max_y) ? t_max_x : t_max_y;
+            originMin = (t_min_x > t_min_y) ? t_min_x : t_min_y;
+            originMax = (t_min_x < t_max_y) ? t_max_x : t_max_y;
 
             if ((t_min_x > t_max_y) || (t_min_y > t_max_x)) {
                 return false;
@@ -38,20 +43,20 @@ class Box {
                 std::swap(t_min_z, t_max_z);
             }
 
-            if ((tmin > t_max_z) || (t_min_z > tmax)) {
+            if ((originMin > t_max_z) || (t_min_z > originMax)) {
                 return false;
             }
 
-            tmin = (t_min_z > tmin) ? t_min_z : tmin;
-            tmax = (t_max_z < tmax) ? t_max_z : tmax;
+            originMin = (t_min_z > originMin) ? t_min_z : originMin;
+            originMax = (t_max_z < originMax) ? t_max_z : originMax;
 
             return true;
         }
 
         // Returns the time of intersection with the box
         float getTime() {
-            if (tmin > 0 && tmax > 0 && tmin <= tmax) {
-                return tmin;
+            if (originMin > 0 && originMax > 0 && originMin <= originMax) {
+                return originMin;
             } else {
                 return std::numeric_limits<float>::max();
             }
@@ -93,6 +98,6 @@ class Box {
         glm::vec3 vmax = glm::vec3(0.5f, 0.5f, 0.5f);
         float originMin;
         float originMax;
-}
+};
 
 #endif

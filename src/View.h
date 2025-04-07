@@ -19,8 +19,7 @@
 #include "Model.h"
 
 #include <stack>
-#include "ConsoleScenegraphRenderer.h"
-#include "RaytracerRenderer.h"
+#include "sgraph/RaytracerRenderer.h"
 using namespace std;
 
 

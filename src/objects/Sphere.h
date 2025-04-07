@@ -1,12 +1,16 @@
-#ifdef _SPHERE_H_
-#define _SPHERE_H_
+#ifndef __SPHERE_H__
+#define __SPHERE_H__
 
 class Sphere {
     public:
-        Sphere();
-        ~Sphere();
+        Sphere() {};
+        ~Sphere() {};
 
-        Sphere (Sphere &t);
+        Sphere (Sphere &t) {
+            tmin = t.tmin;
+            tmax = t.tmax;
+            radius = t.radius;
+        }
 
         // Calculates the intersection times of the ray with the sphere
         bool calcTimes(glm::vec4 origin, glm::vec4 direction) {
@@ -47,9 +51,9 @@ class Sphere {
         }
 
     private:
-        glm::vec3 vmin;
-        glm::vec3 vmax;
+        float tmin;
+        float tmax;
         float radius = 1.0f;
-}
+};
 
 #endif

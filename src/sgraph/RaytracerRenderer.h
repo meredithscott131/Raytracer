@@ -13,11 +13,10 @@
 #include "ObjectInstance.h"
 #include <stack>
 #include <iostream>
-#include <type_ptr.hpp>
-#include "Box.h"
-#include "Sphere.h"
-#include <MeshObject.h>
-#include "HitRecord.h"
+#include "../objects/MeshObject.h"
+#include "../HitRecord.h"
+#include "../objects/Box.h"
+#include "../objects/Sphere.h"
 
 using namespace std;
 
