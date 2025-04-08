@@ -210,6 +210,7 @@ void Controller::onkey(int key, int scancode, int action, int mods) {
 
         //changing between render modes
         if (key == GLFW_KEY_S) {
+            std::cout <<"about to make a render switch to :"<< (model.getRenderMode() == OPENGL ? "OpenGL" : "Ray Tracing") <<" mode.\n";
             model.toggleRenderMode();
             std::cout << "Switched to "<< (model.getRenderMode() == OPENGL ? "OpenGL" : "Ray Tracing") <<" mode.\n";
         }

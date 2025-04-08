@@ -329,7 +329,7 @@ void View::raytrace(Model& model) {
             raytraceModelview.push(glm::mat4(1.0f));
             raytraceModelview.top() *= glm::lookAt(cameraPosition, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
 
-            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, objects, shaderLocations, origin, direction);
+            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, origin, direction);
             sg->getRoot()->accept(raytracerRenderer);
 
             HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
@@ -350,7 +350,7 @@ void View::raytrace(Model& model) {
 
     // Save the image to a PPM file
     PPMImageWriter writer = PPMImageWriter(image, width, height);
-    writer.save("src/images/raytraced_scene.ppm");
+    writer.save("images/raytraced_scene.ppm");
     delete[] image;
 }
 

@@ -13,7 +13,6 @@
 #include "ObjectInstance.h"
 #include <stack>
 #include <iostream>
-#include "../objects/MeshObject.h"
 #include "../HitRecord.h"
 #include "../objects/Box.h"
 #include "../objects/Sphere.h"
