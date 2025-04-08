@@ -15,6 +15,7 @@ using namespace std;
 #include "sgraph/LeafNode.h"
 #include "HitRecord.h"
 #include "sgraph/SGNodeVisitor.h"
+#include "PPMImageWriter.h"
 
 
 View::View() {}
@@ -304,22 +305,19 @@ void View::display(Model& model)
     lightLocations.clear();
 }
 
-// Saves the current scene to a png file via raytracing
 void View::raytrace(Model& model) {
+    int width = window_dimensions[0];
+    int height = window_dimensions[1];
 
-    // Set up file output
-    ofstream out;
-    out.open("src/images/raytraced_scene.png");
-    out << "P3" << std::endl;
-    out << window_dimensions[0] << " " << window_dimensions[1] << std::endl;
-    out << "255" << std::endl;
+    // Allocate image buffer (RGB for each pixel)
+    GLubyte* image = new GLubyte[3 * width * height];
 
-    // loop through each pixel in the window
-    for (int h = 0; h < window_dimensions[1]; h++) {
-        for (int w = 0; w < window_dimensions[0]; w++) {
-            float x = (float)w / (0.5f * window_dimensions[0]);
-            float y = (0.5f * window_dimensions[1]) - (float)h;
-            float z = -(0.5f * window_dimensions[1]) / tan(cameraFOV/2);
+    // Loop through each pixel
+    for (int h = 0; h < height; h++) {
+        for (int w = 0; w < width; w++) {
+            float x = (float)w / (0.5f * width);
+            float y = (0.5f * height) - (float)h;
+            float z = -(0.5f * height) / tan(glm::radians(60.0f) / 2);
 
             glm::vec4 origin(0.0f, 0.0f, 0.0f, 1.0f);
             glm::vec4 direction(x, y, z, 0.0f);
@@ -328,24 +326,32 @@ void View::raytrace(Model& model) {
                 raytraceModelview.pop();
             }
 
-            // Send raytracer renderer to the scenegraph
             raytraceModelview.push(glm::mat4(1.0f));
-            raytraceModelview.top() = raytraceModelview.top() * glm::lookAt(cameraPosition,cameraTarget,glm::vec3(0.0f,1.0f,0.0f));
+            raytraceModelview.top() *= glm::lookAt(cameraPosition, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+
             raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, objects, shaderLocations, origin, direction);
             sg->getRoot()->accept(raytracerRenderer);
 
-            HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer *>(raytracerRenderer)->getHitRecord();
+            HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
+
+            int idx = 3 * ((height - 1 - h) * width + w); // Flip vertically to match PPM convention
 
             if (isinf(hitRecord.t)) {
-                // No hit, set pixel to white
-                out << "255 255 255 ";
+                image[idx]     = 255; // R
+                image[idx + 1] = 255; // G
+                image[idx + 2] = 255; // B
             } else {
-                // Hit, set pixel to black
-                out << "0 0 0 ";
+                image[idx]     = 0;
+                image[idx + 1] = 0;
+                image[idx + 2] = 0;
             }
         }
-        out << std::endl;
     }
+
+    // Save the image to a PPM file
+    PPMImageWriter writer = PPMImageWriter(image, width, height);
+    writer.save("src/images/raytraced_scene.ppm");
+    delete[] image;
 }
 
 // Returns RGB color values between 0 and 1
@@ -377,12 +383,11 @@ bool View::isInShadow(HitRecord hitRecord, vector<vector<util::Light>>& lights) 
 void View::setCamera(TypeOfCamera mode, Model& model) {
     glm::mat4 viewTransform;
     glm::vec3 upVector(0.0f, 1.0f, 0.0f);
-    glm::vec3 cameraPos, target;
     
     if (cameraMode == GLOBAL)
     {
-        cameraPos = glm::vec3(0.0f, 200.0f, 200.0f);
-        target = glm::vec3(0.0f, 0.0f, 0.0f);
+        cameraPosition = glm::vec3(0.0f, 200.0f, 200.0f);
+        cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     }
     else if (cameraMode == CHOPPER)
     {
@@ -390,12 +395,12 @@ void View::setCamera(TypeOfCamera mode, Model& model) {
         float radius = 300.0f;
         float height = 400.0f;
 
-        cameraPos = glm::vec3(radius * cos(glm::radians(angle)), height, radius * sin(glm::radians(angle)));
-        target = glm::vec3(0.0f, 0.0f, 0.0f);
+        cameraPosition = glm::vec3(radius * cos(glm::radians(angle)), height, radius * sin(glm::radians(angle)));
+        cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
         angle += 0.5f;
         if (angle >= 360.0f) angle -= 360.0f;
 
-        viewTransform = glm::lookAt(cameraPos, target, upVector);
+        viewTransform = glm::lookAt(cameraPosition, cameraTarget, upVector);
         modelview.push(viewTransform);
     }
     else if (cameraMode == DRONE)
@@ -409,14 +414,14 @@ void View::setCamera(TypeOfCamera mode, Model& model) {
 
         
         //offset camera position slightly behind and above the drone
-        cameraPos = dronePos - forward + glm::vec3(0.0f, 10.0f, 0.0f);
-        target = dronePos + forward * 30.0f; 
+        cameraPosition = dronePos - forward + glm::vec3(0.0f, 10.0f, 0.0f);
+        cameraTarget = dronePos + forward * 30.0f; 
 
-        viewTransform = glm::lookAt(cameraPos, target, upVector);
+        viewTransform = glm::lookAt(cameraPosition, cameraTarget, upVector);
         modelview.push(viewTransform);
     }
 
-    viewTransform = glm::lookAt(cameraPos, target, upVector);
+    viewTransform = glm::lookAt(cameraPosition, cameraTarget, upVector);
     modelview.push(viewTransform);
 }
 

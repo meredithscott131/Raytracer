@@ -79,6 +79,8 @@ private:
     TypeOfCamera cameraMode = GLOBAL;                               // The camera mode
     glm::vec3 initDronePosition = glm::vec3(0.0f, 10.0f, 50.0f);    // The initial drone position
     glm::vec3 curDronePosition = initDronePosition;                 // The current drone position
+    glm::vec3 cameraPosition;
+    glm::vec3 cameraTarget;
 
     int angleOfRotation;
     glm::mat4 droneTransform = glm::mat4(1.0f);
