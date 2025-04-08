@@ -95,7 +95,11 @@ class Triangle {
         glm::vec4 e2;
         glm::vec4 normal;
         float t;
-        glm::vec4 getCrossProduct(glm::vec4 vec1, glm::vec4 vec2);
+        glm::vec4 getCrossProduct(glm::vec4 vec1, glm::vec4 vec2) {
+            return glm::vec4(vec1.y * vec2.z - vec1.z * vec2.y,
+                             vec1.z * vec2.x - vec1.x * vec2.z,
+                             vec1.x * vec2.y - vec1.y * vec2.x, 0.0f);
+        }
 };
 
 #endif

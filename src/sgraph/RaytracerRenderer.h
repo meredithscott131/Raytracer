@@ -29,24 +29,10 @@ namespace sgraph {
         public:
         /**
          * @brief Construct a new GLScenegraphRenderer object
-         * 
-         * @param mv a reference to modelview stack that will be used while rendering
-         * @param os the map of ObjectInstance objects
-         * @param shaderLocations the shader locations for the program used to render
          */
-        RaytracerRenderer(stack<glm::mat4>& mv,map<string,util::ObjectInstance *>& os, util::ShaderLocationsVault& shaderLocations, glm::vec4 o, glm::vec4 d) 
-            : modelview(mv)
-            , objects(os)
-            , origin(o),
-            direction(d) {
-            this->shaderLocations = shaderLocations;
-            for (map<string,util::ObjectInstance *>::iterator it=objects.begin();it!=objects.end();it++) {
-                //cout << "Mesh with name: "<< it->first << endl;
-            }
-        }
-
-        void setTextureIds(map<string,unsigned int> & viewtextureIds){
-            this->viewtextureIds = viewtextureIds;
+        RaytracerRenderer(stack<glm::mat4>& mv, glm::vec4 o, glm::vec4 d) : modelview(mv), origin(o), direction(d) {
+            this->minTime = std::numeric_limits<float>::max();
+            this->hitRecordWithMinTime = HitRecord(minTime, glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
         }
 
         /**
@@ -84,11 +70,7 @@ namespace sgraph {
                     newTime = sphere.getTime();
                 }
             } else {
-                MeshObject m = meshObjects.at(leafNode->getInstanceOf());
-                hit = m.calcTimes(transformedOrigin, transformedDirection);
-                if (hit) {
-                    newTime = m.getTime();
-                }
+                // TODO: Handle other instances
             }
 
             if (hit) {
@@ -156,17 +138,13 @@ namespace sgraph {
         }
 
         private:
-        stack<glm::mat4>& modelview;    
-        util::ShaderLocationsVault shaderLocations;
-        map<string,util::ObjectInstance *> objects;
-        map<string,unsigned int> viewtextureIds;
+        stack<glm::mat4>& modelview;
         glm::vec4 origin;
         glm::vec4 direction;
         Box box;
         Sphere sphere;
-        float minTime = std::numeric_limits<float>::max();
+        float minTime;
         HitRecord hitRecordWithMinTime = HitRecord(minTime, glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
-                map<string, MeshObject> meshObjects;
 
         glm::vec4 getNormal(glm::vec4 intersectionPoint, string instanceName) {
             if (instanceName == "box") {
@@ -174,7 +152,6 @@ namespace sgraph {
             } else if (instanceName == "sphere") {
                 return sphere.getNormal(intersectionPoint);
             } else {
-                // Default normal
                 return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             }
         }

@@ -354,30 +354,50 @@ void View::raytrace(Model& model) {
     delete[] image;
 }
 
-// Returns RGB color values between 0 and 1
-glm::vec4 View::getColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
-    float a = hitRecord.material.getAbsorption();
-    float r = hitRecord.material.getReflection();
-    float t = hitRecord.material.getTransparency();
+// // Returns RGB color values between 0 and 1
+// glm::vec4 View::getColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
+//     float a = hitRecord.material.getAbsorption();
+//     float r = hitRecord.material.getReflection();
+//     float t = hitRecord.material.getTransparency();
 
-    // TODO
-}
+//   
+//     spdlog::debug("material absorption: (int)" + (int) a);
+//     spdlog::debug("material reflection: (int)" + (int) r);
+//     spdlog::debug("material transparency: (int)" + (int) t);
 
-glm::vec4 View::getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
-    // TODO
-}
+//     glm::vec4 absorption = glm::vec4(0,0,0,0);
+//     if (a > 0) {
+//         absorption = hitRecord.object_mat->getAbsorption() * getAbsorptionColor(hitRecord,sceneLightCollections,scenegraph);
+//     }
 
-glm::vec4 View::getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
-    // TODO
-}
+//     glm::vec4 reflection = glm::vec4(0,0,0,0);
+//     spdlog::debug("reflective bounces: " + reflectiveBounces);
+//     if (r > 0) {
+//         if (reflectiveBounces < 5)  {
+//             reflection = r * getReflectionColor(hitRecord,sceneLightCollections,scenegraph,rayDirection,reflectiveBounces,refractiveBounces);
+//         }
+//         else {
+//             reflection = glm::vec4(1,1,1,0);
+//         }
+//     }
 
-glm::vec4 View::getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
-    // TODO
-}
+// }
 
-bool View::isInShadow(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
-    // TODO
-}
+// glm::vec4 View::getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
+//     // TODO
+// }
+
+// glm::vec4 View::getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
+//     // TODO
+// }
+
+// glm::vec4 View::getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
+//     // TODO
+// }
+
+// bool View::isInShadow(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
+//     // TODO
+// }
 
 // Set the camera position given the current camera mode
 void View::setCamera(TypeOfCamera mode, Model& model) {
