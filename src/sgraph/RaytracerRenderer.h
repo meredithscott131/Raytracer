@@ -30,7 +30,7 @@ namespace sgraph {
          * @brief Construct a new GLScenegraphRenderer object
          */
         RaytracerRenderer(stack<glm::mat4>& mv, glm::vec4 o, glm::vec4 d) : modelview(mv), origin(o), direction(d) {
-            this->minTime = std::numeric_limits<float>::max();
+            this->minTime = std::numeric_limits<float>::infinity();
             this->hitRecordWithMinTime = HitRecord(minTime, glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
         }
 
@@ -59,8 +59,9 @@ namespace sgraph {
             //std::cout << "Ray origin: " << transformedOrigin.x << ", " << transformedOrigin.y << ", " << transformedOrigin.z << std::endl;
             //std::cout << "Ray dir: " << transformedDirection.x << ", " << transformedDirection.y << ", " << transformedDirection.z << std::endl;
 
-            bool hit;
-            float newTime;
+            bool hit;         // hit is true if the ray intersects with the object
+            float newTime;    // the time of intersection
+
             if (leafNode->getInstanceOf() == "box") {
                 hit = box.calcTimes(transformedOrigin, transformedDirection);
                 if (hit) {
@@ -73,15 +74,17 @@ namespace sgraph {
                     newTime = sphere.getTime();
                 }
             } else {
-                // TODO: Handle other instances
+                // Unknown object type, no hit
+                hit = false;
+                newTime = std::numeric_limits<float>::max();
             }
 
             if (hit) {
                 if (newTime < hitRecordWithMinTime.t) {
                     // ISSUE HERE?????
-                    // gets through so the hit detection is in fact working.. i think
-                    // Hits and non hits are consistently detected
-                    // just how this info is being passed to the hit record (and therefore view) is wrong
+                    // Hits are being detected and we get in this block
+                    // but in the view hit record the t is always 3.40282e+38f so default/infinity
+                    // hitRecordWithMinTime isn't being updated?
 
                     // Calculate the intersection point and normal
                     glm::vec4 intersectionPoint = transformedOrigin + (newTime * transformedDirection);
@@ -92,11 +95,15 @@ namespace sgraph {
                     glm::mat4 mvt1 = modelview.top();
                     intersectionPoint = mvt1 * intersectionPoint;
                     glm::mat4 mvt2 = modelview.top();
-                    normal = glm::transpose(glm::inverse(mvt2)) * normal;
+                    normal = mvt2 * normal;
 
-                    // Creating a new hit record with the new time and intersection point
+                    //cout << "Hit at t = " << newTime << " with normal: " << normal.x << ", " << normal.y << ", " << normal.z << endl;
+                    // t values have range 0.0 to 0.296174 by time of force quit
+                    // normals also have value range
+                    //cout << "Hit at intersection point: " << intersectionPoint.x << ", " << intersectionPoint.y << ", " << intersectionPoint.z << endl;
+                    
                     HitRecord newHitRecord(newTime, intersectionPoint, normal, leafNode->getMaterial());
-                    //cout << newHitRecord.t << " " << newHitRecord.point.x << " " << newHitRecord.point.y << " " << newHitRecord.point.z << endl;
+
                     hitRecordWithMinTime = newHitRecord;
                 }
             } else {
@@ -146,10 +153,6 @@ namespace sgraph {
 
         HitRecord& getHitRecord() {
             return hitRecordWithMinTime;
-        }
-
-        int returnHitCount() {
-            return hitCount;
         }
 
         private:

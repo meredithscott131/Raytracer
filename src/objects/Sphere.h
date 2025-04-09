@@ -6,17 +6,11 @@ class Sphere {
         Sphere() {};
         ~Sphere() {};
 
-        Sphere (Sphere &t) {
-            tmin = t.tmin;
-            tmax = t.tmax;
-            radius = t.radius;
-        }
-
         // Calculates the intersection times of the ray with the sphere
-        bool calcTimes(glm::vec4 s, glm::vec4 v) {
-            float a = pow(v.x,2) + pow(v.y,2) + pow(v.z,2);
-            float b = 2 * ((s.x * v.x) + (s.y * v.y) + (s.z * v.z));
-            float c = pow(s.x,2) + pow(s.y,2) + pow(s.z,2) - pow(radius,2);
+        bool calcTimes(glm::vec4 origin, glm::vec4 direction) {
+            float a = pow(direction.x,2) + pow(direction.y,2) + pow(direction.z,2);
+            float b = 2 * ((origin.x * direction.x) + (origin.y * direction.y) + (origin.z * direction.z));
+            float c = pow(origin.x,2) + pow(origin.y,2) + pow(origin.z,2) - pow(radius,2);
         
             float discriminant = pow(b,2) - (4 * a * c);
             if (discriminant < 0) {

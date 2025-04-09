@@ -11,6 +11,17 @@
             "cwd": "c:\\Users\\mered\\OneDrive - Northeastern University\\Documents\\NEU\\2025 Spring\\CS4300 Computer Graphics\\cs4300\\CS4300-RayTracer\\Scene",
             "binaryPath": "c:\\Users\\mered\\OneDrive - Northeastern University\\Documents\\NEU\\2025 Spring\\CS4300 Computer Graphics\\cs4300\\CS4300-RayTracer\\Scene\\Scene.exe",
             "binaryArgs": []
+        },
+        {
+            "cwd": "c:\\Users\\mered\\OneDrive - Northeastern University\\Documents\\NEU\\2025 Spring\\CS4300 Computer Graphics\\cs4300\\CS4300-RayTracer\\src",
+            "binaryPath": "c:\\Users\\mered\\OneDrive - Northeastern University\\Documents\\NEU\\2025 Spring\\CS4300 Computer Graphics\\cs4300\\CS4300-RayTracer\\src\\Scene.exe",
+            "binaryArgs": []
         }
-    ]
+    ],
+    "files.associations": {
+        "cmath": "cpp",
+        "limits": "cpp",
+        "utility": "cpp",
+        "xutility": "cpp"
+    }
 }

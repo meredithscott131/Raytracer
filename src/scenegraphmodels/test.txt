@@ -11,7 +11,7 @@ end-material
 
 group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 180 0 0 -1 end-lights
 
-leaf l1 l1 instanceof sphere add-lights nolights end-lights
+leaf l1 l1 instanceof box add-lights nolights end-lights
 assign-material l1 mat-ball
 translate t1 t1 0 0 0 add-lights nolights end-lights
 scale s1 s1 60 60 60 add-lights nolights end-lights
