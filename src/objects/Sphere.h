@@ -13,25 +13,25 @@ class Sphere {
         }
 
         // Calculates the intersection times of the ray with the sphere
-        bool calcTimes(glm::vec4 origin, glm::vec4 direction) {
-            float a = pow(direction.x, 2) + pow(direction.y, 2) + pow(direction.z, 2);
-            float b = 2 * (origin.x * direction.x + origin.y * direction.y + origin.z * direction.z);
-            float c = pow(origin.x, 2) + pow(origin.y, 2) + pow(origin.z, 2) - pow(radius, 2);
-
-            float discriminant = pow(b, 2) - 4 * a * c;
+        bool calcTimes(glm::vec4 s, glm::vec4 v) {
+            float a = pow(v.x,2) + pow(v.y,2) + pow(v.z,2);
+            float b = 2 * ((s.x * v.x) + (s.y * v.y) + (s.z * v.z));
+            float c = pow(s.x,2) + pow(s.y,2) + pow(s.z,2) - pow(radius,2);
+        
+            float discriminant = pow(b,2) - (4 * a * c);
             if (discriminant < 0) {
                 return false;
             }
-
+        
             tmin = (-b + sqrt(discriminant)) / (2 * a);
             tmax = (-b - sqrt(discriminant)) / (2 * a);
-
+        
             if (tmin > tmax) {
-                std::swap(tmin, tmax);
+                std::swap(tmin,tmax);
             }
-
             return true;
         }
+        
 
         // Returns the time of intersection with the sphere
         float getTime() {
@@ -40,7 +40,7 @@ class Sphere {
             } else if (tmin < 0 && tmax > 0) {
                 return tmax;
             } else {
-                return std::numeric_limits<float>::max();
+                return INFINITY;
             }
         }
 

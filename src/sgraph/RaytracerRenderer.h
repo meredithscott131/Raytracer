@@ -56,6 +56,9 @@ namespace sgraph {
             glm::vec4 transformedOrigin = inverseTransform * origin;
             glm::vec4 transformedDirection = inverseTransform * direction;
 
+            //std::cout << "Ray origin: " << transformedOrigin.x << ", " << transformedOrigin.y << ", " << transformedOrigin.z << std::endl;
+            //std::cout << "Ray dir: " << transformedDirection.x << ", " << transformedDirection.y << ", " << transformedDirection.z << std::endl;
+
             bool hit;
             float newTime;
             if (leafNode->getInstanceOf() == "box") {
@@ -64,6 +67,7 @@ namespace sgraph {
                     newTime = box.getTime();
                 }
             } else if (leafNode->getInstanceOf() == "sphere") {
+                //cout << "Sphere hit" << endl;
                 hit = sphere.calcTimes(transformedOrigin, transformedDirection);
                 if (hit) {
                     newTime = sphere.getTime();
@@ -74,6 +78,11 @@ namespace sgraph {
 
             if (hit) {
                 if (newTime < hitRecordWithMinTime.t) {
+                    // ISSUE HERE?????
+                    // gets through so the hit detection is in fact working.. i think
+                    // Hits and non hits are consistently detected
+                    // just how this info is being passed to the hit record (and therefore view) is wrong
+
                     // Calculate the intersection point and normal
                     glm::vec4 intersectionPoint = transformedOrigin + (newTime * transformedDirection);
                     glm::vec4 normal;
@@ -83,12 +92,15 @@ namespace sgraph {
                     glm::mat4 mvt1 = modelview.top();
                     intersectionPoint = mvt1 * intersectionPoint;
                     glm::mat4 mvt2 = modelview.top();
-                    normal = mvt2 * normal;
+                    normal = glm::transpose(glm::inverse(mvt2)) * normal;
 
                     // Creating a new hit record with the new time and intersection point
                     HitRecord newHitRecord(newTime, intersectionPoint, normal, leafNode->getMaterial());
+                    //cout << newHitRecord.t << " " << newHitRecord.point.x << " " << newHitRecord.point.y << " " << newHitRecord.point.z << endl;
                     hitRecordWithMinTime = newHitRecord;
                 }
+            } else {
+                //cout << "NO HIT" << endl;
             }
         }
 
@@ -136,7 +148,12 @@ namespace sgraph {
             return hitRecordWithMinTime;
         }
 
+        int returnHitCount() {
+            return hitCount;
+        }
+
         private:
+        int hitCount = 0;
         stack<glm::mat4>& modelview;
         glm::vec4 origin;
         glm::vec4 direction;

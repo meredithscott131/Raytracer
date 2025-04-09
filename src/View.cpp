@@ -319,17 +319,18 @@ void View::raytrace(Model& model) {
             float y = (0.5f * height) - (float)h;
             float z = -(0.5f * height) / tan(glm::radians(60.0f) / 2);
 
-            glm::vec4 origin(0.0f, 0.0f, 0.0f, 1.0f);
-            glm::vec4 direction(x, y, z, 0.0f);
+            glm::mat4 viewMatrix = glm::lookAt(cameraPosition, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 inverseView = glm::inverse(viewMatrix);
 
-            while (!raytraceModelview.empty()) {
-                raytraceModelview.pop();
-            }
+            glm::vec4 rayOrigin = inverseView * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // camera position in world space
+            glm::vec4 rayDirection = inverseView * glm::vec4(x, y, z, 0.0f);      // direction in world space
 
-            raytraceModelview.push(glm::mat4(1.0f));
-            raytraceModelview.top() *= glm::lookAt(cameraPosition, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+            rayDirection = glm::normalize(rayDirection); // make sure it's a unit direction
 
-            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, origin, direction);
+            while (!raytraceModelview.empty()) raytraceModelview.pop();
+            raytraceModelview.push(glm::mat4(1.0f)); // identity — world space
+
+            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, rayOrigin, rayDirection);
             sg->getRoot()->accept(raytracerRenderer);
 
             HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
@@ -337,14 +338,14 @@ void View::raytrace(Model& model) {
             int idx = 3 * ((height - 1 - h) * width + w); // Flip vertically to match PPM convention
 
             if (isinf(hitRecord.t)) {
-                image[idx]     = 255; // R
-                image[idx + 1] = 255; // G
-                image[idx + 2] = 255; // B
+                image[idx]     = 255;
+                image[idx + 1] = 255;
+                image[idx + 2] = 255;
             } else {
-                image[idx]     = 0;
+                image[idx]     = 255;
                 image[idx + 1] = 0;
                 image[idx + 2] = 0;
-            }
+            }                       
         }
     }
 
