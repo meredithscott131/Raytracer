@@ -1,6 +1,7 @@
 #include "Model.h"
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 Model::Model() {
     //not having this following line was causing a memory allocation error... 
@@ -179,15 +180,15 @@ util::TextureImage* Model::getTextureObject(const string& name) {
     return scenegraph->getTextureObject(name);
 }
 
-
-
 //toggling between the two rendermodes
 void Model::toggleRenderMode(){
     if (mode == OPENGL) {
         mode = RAYTRACE;
+        std::cout << "Switched to Ray Tracing mode\n";
     }
     else {
         mode = OPENGL;
+        std::cout << "Switched to OpenGL mode\n";
     }
 }
 
