@@ -1,0 +1,200 @@
+instance sphere models/sphere.obj
+instance box models/box.obj
+
+# ========== MATERIALS ==========
+material mat-trunk
+emission 0 0 0
+ambient 0.4 0.2 0.1
+diffuse 0.6 0.3 0.1
+specular 0.1 0.1 0.1
+shininess 5
+end-material
+
+material mat-leaf
+emission 0 0 0
+ambient 0.0 0.4 0.0
+diffuse 0.1 0.7 0.1
+specular 0.2 0.2 0.2
+shininess 10
+end-material
+
+material mat-ground
+emission 0 0 0
+ambient 0.2 0.2 0.2
+diffuse 0.3 0.3 0.3
+specular 0.0 0.0 0.0
+shininess 1
+end-material
+
+material mat-fruit
+emission 0 0 0
+ambient 0.8 0.1 0.1
+diffuse 0.9 0.2 0.2
+specular 0.3 0.3 0.3
+shininess 30
+end-material
+
+material mat-blanket
+emission 0 0 0
+ambient 0.7 0.7 0.1
+diffuse 0.9 0.3 0.3
+specular 0.1 0.1 0.1
+shininess 5
+end-material
+
+material mat-basket
+emission 0 0 0
+ambient 0.6 0.3 0.1
+diffuse 0.5 0.2 0.1
+specular 0.1 0.1 0.1
+shininess 10
+end-material
+
+
+group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 85 0 0 -1 end-lights
+
+#the ground
+leaf ground ground instanceof box add-lights nolights end-lights
+assign-material ground mat-ground
+translate tground tground 0 -50 0 add-lights nolights end-lights
+scale sground sground 300 2 300 add-lights nolights end-lights
+add-child tground root
+add-child sground tground
+add-child ground sground
+
+#Big Tree Trunk
+leaf trunk trunk instanceof box add-lights nolights end-lights
+assign-material trunk mat-trunk
+translate ttrunk ttrunk 0 -25 0 add-lights nolights end-lights
+scale strunk strunk 10 50 10 add-lights nolights end-lights
+add-child ttrunk root
+add-child strunk ttrunk
+add-child trunk strunk
+
+#VERY BIG LEAVES  :D
+leaf leaf1 leaf1 instanceof sphere add-lights nolights end-lights
+assign-material leaf1 mat-leaf
+translate tleaf1 tleaf1 0 38 0 add-lights nolights end-lights
+scale sleaf1 sleaf1 40 40 40 add-lights nolights end-lights
+add-child tleaf1 root
+add-child sleaf1 tleaf1
+add-child leaf1 sleaf1
+
+leaf leaf2 leaf2 instanceof sphere add-lights nolights end-lights
+assign-material leaf2 mat-leaf
+translate tleaf2 tleaf2 25 50 0 add-lights nolights end-lights
+scale sleaf2 sleaf2 30 30 30 add-lights nolights end-lights
+add-child tleaf2 root
+add-child sleaf2 tleaf2
+add-child leaf2 sleaf2
+
+leaf leaf3 leaf3 instanceof sphere add-lights nolights end-lights
+assign-material leaf3 mat-leaf
+translate tleaf3 tleaf3 -25 40 0 add-lights nolights end-lights
+scale sleaf3 sleaf3 30 30 30 add-lights nolights end-lights
+add-child tleaf3 root
+add-child sleaf3 tleaf3
+add-child leaf3 sleaf3
+
+leaf leaf4 leaf4 instanceof sphere add-lights nolights end-lights
+assign-material leaf4 mat-leaf
+translate tleaf4 tleaf4 0 60 -20 add-lights nolights end-lights
+scale sleaf4 sleaf4 20 20 20 add-lights nolights end-lights
+add-child tleaf4 root
+add-child sleaf4 tleaf4
+add-child leaf4 sleaf4
+
+#THE ROOTS OF THE TREE
+leaf root1 root1 instanceof box add-lights nolights end-lights
+assign-material root1 mat-trunk
+translate troot1 troot1 -10 -48 10 add-lights nolights end-lights
+scale sroot1 sroot1 20 5 25 add-lights nolights end-lights
+add-child troot1 root
+add-child sroot1 troot1
+add-child root1 sroot1
+
+leaf root2 root2 instanceof box add-lights nolights end-lights
+assign-material root2 mat-trunk
+translate troot2 troot2 10 -48 10 add-lights nolights end-lights
+scale sroot2 sroot2 25 9 15 add-lights nolights end-lights
+add-child troot2 root
+add-child sroot2 troot2
+add-child root2 sroot2
+
+#THE FRUITS ON THE TREE!!!
+leaf fruit1 fruit1 instanceof sphere add-lights nolights end-lights
+assign-material fruit1 mat-fruit
+translate tfruit1 tfruit1 38 50 26 add-lights nolights end-lights
+scale sfruit1 sfruit1 4 4 4 add-lights nolights end-lights
+add-child tfruit1 root
+add-child sfruit1 tfruit1
+add-child fruit1 sfruit1
+
+leaf fruit2 fruit2 instanceof sphere add-lights nolights end-lights
+assign-material fruit2 mat-fruit
+translate tfruit2 tfruit2 -48 38 18 add-lights nolights end-lights
+scale sfruit2 sfruit2 3.5 3.5 3.5 add-lights nolights end-lights
+add-child tfruit2 root
+add-child sfruit2 tfruit2
+add-child fruit2 sfruit2
+
+leaf fruit3 fruit3 instanceof sphere add-lights nolights end-lights
+assign-material fruit3 mat-fruit
+translate tfruit3 tfruit3 5 55 35 add-lights nolights end-lights
+scale sfruit3 sfruit3 3 3 3 add-lights nolights end-lights
+add-child tfruit3 root
+add-child sfruit3 tfruit3
+add-child fruit3 sfruit3
+
+leaf fruit4 fruit4 instanceof sphere add-lights nolights end-lights
+assign-material fruit4 mat-fruit
+translate tfruit4 tfruit4 -5 20 36 add-lights nolights end-lights
+scale sfruit4 sfruit4 2.5 2.5 2.5 add-lights nolights end-lights
+add-child tfruit4 root
+add-child sfruit4 tfruit4
+add-child fruit4 sfruit4
+
+leaf fruit5 fruit5 instanceof sphere add-lights nolights end-lights
+assign-material fruit5 mat-fruit
+translate tfruit5 tfruit5 -20 40 35 add-lights nolights end-lights
+scale sfruit5 sfruit5 2.5 2.5 2.5 add-lights nolights end-lights
+add-child tfruit5 root
+add-child sfruit5 tfruit5
+add-child fruit5 sfruit5
+
+#Picnic Basket and Blanket Scene
+leaf blanket blanket instanceof box add-lights nolights end-lights
+assign-material blanket mat-blanket
+translate tblanket tblanket 50 -49 40 add-lights nolights end-lights
+scale sblanket sblanket 30 1 30 add-lights nolights end-lights
+add-child tblanket root
+add-child sblanket tblanket
+add-child blanket sblanket
+
+#The basket sitting on the blanket
+leaf picnicbasket picnicbasket instanceof box add-lights nolights end-lights
+assign-material picnicbasket mat-basket
+translate tbasket tbasket 55 -47 45 add-lights nolights end-lights
+scale sbasket sbasket 10 5 8 add-lights nolights end-lights
+add-child tbasket root
+add-child sbasket tbasket
+add-child picnicbasket sbasket
+
+#Fruit on the blanket
+leaf fruit6 fruit6 instanceof sphere add-lights nolights end-lights
+assign-material fruit6 mat-fruit
+translate tfruit6 tfruit6 45 -46 35 add-lights nolights end-lights
+scale sfruit6 sfruit6 3 3 3 add-lights nolights end-lights
+add-child tfruit6 root
+add-child sfruit6 tfruit6
+add-child fruit6 sfruit6
+
+leaf fruit7 fruit7 instanceof sphere add-lights nolights end-lights
+assign-material fruit7 mat-fruit
+translate tfruit7 tfruit7 60 -46 50 add-lights nolights end-lights
+scale sfruit7 sfruit7 2.5 2.5 2.5 add-lights nolights end-lights
+add-child tfruit7 root
+add-child sfruit7 tfruit7
+add-child fruit7 sfruit7
+
+assign-root root
