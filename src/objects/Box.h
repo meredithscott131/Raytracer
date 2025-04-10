@@ -83,8 +83,8 @@ class Box : public AbstractRaytraceObject {
         }
 
     private:
-        glm::vec3 vmin = glm::vec3(-0.5f, -0.5f, -0.5f);
-        glm::vec3 vmax = glm::vec3(0.5f, 0.5f, 0.5f);
+        glm::vec3 vMin = glm::vec3(-0.5f, -0.5f, -0.5f);
+        glm::vec3 vMax = glm::vec3(0.5f, 0.5f, 0.5f);
 };
 
 #endif

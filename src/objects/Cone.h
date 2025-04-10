@@ -43,11 +43,9 @@ class Cone : public AbstractRaytraceObject {
             if (tMin > 0 && tMax > 0 && tMin <= tMax) {
                 return tMin;
             }
-        
             else if (tMin < 0 && tMax > 0) {
                 return tMax;
             }
-        
             else {
                 return INFINITY; 
             }
@@ -74,24 +72,24 @@ class Cone : public AbstractRaytraceObject {
             }
         
             if (onBase) {
-                if ((intersectionPoint.x < (vmax.x + 0.001f)) &&
-                (intersectionPoint.x > (vmax.x - 0.001f))) {
+                if ((intersectionPoint.x < (vMax.x + 0.001f)) &&
+                (intersectionPoint.x > (vMax.x - 0.001f))) {
                     normal.x = 1;
                 }
-                else if ((intersectionPoint.x > (vmin.x - 0.001f)) &&
-                (intersectionPoint.x < (vmin.x + 0.001f))) {
+                else if ((intersectionPoint.x > (vMin.x - 0.001f)) &&
+                (intersectionPoint.x < (vMin.x + 0.001f))) {
                     normal.x = -1;
                 }
                 else {
                     normal.x = 0;
                 }
         
-                if ((intersectionPoint.z < (vmax.z + 0.001f) ) &&
-                (intersectionPoint.z > (vmax.z - 0.001f))) {
+                if ((intersectionPoint.z < (vMax.z + 0.001f) ) &&
+                (intersectionPoint.z > (vMax.z - 0.001f))) {
                     normal.z = 1;
                 }
-                else if ((intersectionPoint.z > (vmin.z - 0.001f)) &&
-                (intersectionPoint.z < (vmin.z + 0.001f))) {
+                else if ((intersectionPoint.z > (vMin.z - 0.001f)) &&
+                (intersectionPoint.z < (vMin.z + 0.001f))) {
                     normal.z = -1;
                 }
                 else {
@@ -112,8 +110,8 @@ class Cone : public AbstractRaytraceObject {
         }
 
         private:
-            glm::vec3 vmin = glm::vec3(-1.0f,0.0f,-1.0f);
-            glm::vec3 vmax = glm::vec3(1.0f,1.0f,1.0f);
+            glm::vec3 vMin = glm::vec3(-1.0f,0.0f,-1.0f);
+            glm::vec3 vMax = glm::vec3(1.0f,1.0f,1.0f);
 };
 
 #endif

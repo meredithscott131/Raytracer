@@ -31,7 +31,7 @@ add-child l1 s1
 
 
 
-leaf l2 l2 instanceof sphere add-lights nolights end-lights
+leaf l2 l2 instanceof cylinder add-lights nolights end-lights
 assign-material l2 mat-ball
 translate t2 t2 0 -30 -30 add-lights nolights end-lights
 scale s2 s2 60 60 60 add-lights nolights end-lights

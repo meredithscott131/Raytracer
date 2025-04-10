@@ -13,10 +13,13 @@
 #include "ObjectInstance.h"
 #include <stack>
 #include <iostream>
+
 #include "../HitRecord.h"
 #include "../objects/Box.h"
 #include "../objects/Sphere.h"
 #include "../objects/Cone.h"
+#include "../objects/Cylinder.h"
+#include "../objects/AbstractRaytraceObject.h"
 #include "../Ray.h"
 
 using namespace std;
@@ -28,150 +31,138 @@ namespace sgraph {
      */
     class RaytracerRenderer: public SGNodeVisitor {
         public:
-        /**
-         * @brief Construct a new GLScenegraphRenderer object
-         */
-        RaytracerRenderer(stack<glm::mat4>& mv, Ray ray) : modelview(mv), s(glm::vec4(ray.origin, 1.0f)), v(glm::vec4(ray.direction, 0.0f)) {
-            this->hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
-        }
-
-        /**
-         * @brief Recur to the children for drawing
-         * 
-         * @param groupNode 
-         */
-        void visitGroupNode(GroupNode *groupNode) {
-            for (int i=0;i<groupNode->getChildren().size();i=i+1) {
-                groupNode->getChildren()[i]->accept(this);
+            /**
+             * @brief Construct a new GLScenegraphRenderer object
+             */
+            RaytracerRenderer(stack<glm::mat4>& mv, Ray ray) : modelview(mv), s(glm::vec4(ray.origin, 1.0f)), v(glm::vec4(ray.direction, 0.0f)) {
+                this->hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
             }
-        }
 
-        /**
-         * @brief Updates hit record if the ray hits the object
-         * 
-         * @param leafNode 
-         */
-        void visitLeafNode(LeafNode *leafNode) {
-            // Get the modelview matrix for the current node
-            glm::mat4 inverseTransform = glm::inverse(modelview.top());
-            glm::vec4 transformedS = inverseTransform * s;
-            glm::vec4 transformedV = inverseTransform * v;
+            /**
+             * @brief Recur to the children for drawing
+             * 
+             * @param groupNode 
+             */
+            void visitGroupNode(GroupNode *groupNode) {
+                for (int i=0;i<groupNode->getChildren().size();i=i+1) {
+                    groupNode->getChildren()[i]->accept(this);
+                }
+            }
 
-            bool hit;         // hit is true if the ray intersects with the object
-            float time;       // the time of intersection
+            /**
+             * @brief Updates hit record if the ray hits the object
+             * 
+             * @param leafNode 
+             */
+            void visitLeafNode(LeafNode *leafNode) {
+                // Get the modelview matrix for the current node
+                glm::mat4 inverseTransform = glm::inverse(modelview.top());
+                glm::vec4 transformedS = inverseTransform * s;
+                glm::vec4 transformedV = inverseTransform * v;
 
-            if (leafNode->getInstanceOf() == "box") {
-                hit = box.didHit(transformedS, transformedV);
+                // Set up the raytrace object based on the type of leaf node
+
+                bool objectKnown = true;
+
+                if (leafNode->getInstanceOf() == "box") raytraceObject = &box;
+                else if (leafNode->getInstanceOf() == "sphere") raytraceObject = &sphere;
+                else if (leafNode->getInstanceOf() == "cone") raytraceObject = &cone;
+                else if (leafNode->getInstanceOf() == "cylinder") raytraceObject = &cylinder;
+                else objectKnown = false;
+
+                bool hit;         // whether ray intersects with the object
+                float time;       // time of intersection
+
+                if (!objectKnown) {
+                    hit = false;
+                    time = std::numeric_limits<float>::infinity();
+                } else {
+                    hit = raytraceObject->didHit(transformedS, transformedV);
+                    if (hit) {
+                        time = raytraceObject->getTime();
+                    }
+                }
+
                 if (hit) {
-                    time = box.getTime();
-                }
-            } else if (leafNode->getInstanceOf() == "sphere") {
-                hit = sphere.didHit(transformedS, transformedV);
-                if (hit) {
-                    time = sphere.getTime();
-                }
-            } else if (leafNode->getInstanceOf() == "cone") {
-                hit = cone.didHit(transformedS, transformedV);
-                if (hit) {
-                    time = cone.getTime();
-                }
+                    if (time < hitRecord.t) {
+                        // Calculate the intersection point and normal
+                        glm::vec4 intersectionPoint = transformedS + (time * transformedV);
+                        glm::vec4 normal;
+                        normal = raytraceObject->getNormal(intersectionPoint);
 
-            } else {
-                // Unknown object type, no hit
-                hit = false;
-                time = std::numeric_limits<float>::infinity();
+                        // Transform the intersection point and normal back to world coordinates
+                        glm::mat4 mv = modelview.top();
+                        intersectionPoint = mv * intersectionPoint;
+                        glm::mat4 updatedMV = modelview.top();
+                        normal = updatedMV * normal;
+                        
+                        // Create a new HitRecord object with the updated values
+                        HitRecord updatedHitRecord(time, intersectionPoint, normal, leafNode->getMaterial());
+                        hitRecord = updatedHitRecord;
+                    }
+                } else {
+                    //cout << "NO HIT" << endl;
+                }
             }
 
-            if (hit) {
-                if (time < hitRecord.t) {
-                    // Calculate the intersection point and normal
-                    glm::vec4 intersectionPoint = transformedS + (time * transformedV);
-                    glm::vec4 normal;
-                    normal = getNormal(intersectionPoint, leafNode->getInstanceOf());
-
-                    // Transform the intersection point and normal back to world coordinates
-                    glm::mat4 mv = modelview.top();
-                    intersectionPoint = mv * intersectionPoint;
-                    glm::mat4 updatedMV = modelview.top();
-                    normal = updatedMV * normal;
-                    
-                    // Create a new HitRecord object with the updated values
-                    HitRecord updatedHitRecord(time, intersectionPoint, normal, leafNode->getMaterial());
-                    hitRecord = updatedHitRecord;
+            /**
+             * @brief Multiply the transform to the modelview and recur to child
+             * 
+             * @param transformNode 
+             */
+            void visitTransformNode(TransformNode * transformNode) {
+                modelview.push(modelview.top());
+                modelview.top() = modelview.top() * transformNode->getTransform();
+                if (transformNode->getChildren().size()>0) {
+                    transformNode->getChildren()[0]->accept(this);
                 }
-            } else {
-                //cout << "NO HIT" << endl;
+                modelview.pop();
             }
-        }
 
-        /**
-         * @brief Multiply the transform to the modelview and recur to child
-         * 
-         * @param transformNode 
-         */
-        void visitTransformNode(TransformNode * transformNode) {
-            modelview.push(modelview.top());
-            modelview.top() = modelview.top() * transformNode->getTransform();
-            if (transformNode->getChildren().size()>0) {
-                transformNode->getChildren()[0]->accept(this);
+            /**
+             * @brief For this visitor, only the transformation matrix is required.
+             * Thus there is nothing special to be done for each type of transformation.
+             * We delegate to visitTransformNode above
+             * 
+             * @param scaleNode 
+             */
+            void visitScaleTransform(ScaleTransform *scaleNode) {
+                visitTransformNode(scaleNode);
             }
-            modelview.pop();
-        }
 
-        /**
-         * @brief For this visitor, only the transformation matrix is required.
-         * Thus there is nothing special to be done for each type of transformation.
-         * We delegate to visitTransformNode above
-         * 
-         * @param scaleNode 
-         */
-        void visitScaleTransform(ScaleTransform *scaleNode) {
-            visitTransformNode(scaleNode);
-        }
+            /**
+             * @brief For this visitor, only the transformation matrix is required.
+             * Thus there is nothing special to be done for each type of transformation.
+             * We delegate to visitTransformNode above
+             * 
+             * @param translateNode 
+             */
+            void visitTranslateTransform(TranslateTransform *translateNode) {
+                visitTransformNode(translateNode);
+            }
 
-        /**
-         * @brief For this visitor, only the transformation matrix is required.
-         * Thus there is nothing special to be done for each type of transformation.
-         * We delegate to visitTransformNode above
-         * 
-         * @param translateNode 
-         */
-        void visitTranslateTransform(TranslateTransform *translateNode) {
-            visitTransformNode(translateNode);
-        }
+            void visitRotateTransform(RotateTransform *rotateNode) {
+                visitTransformNode(rotateNode);
+            }
 
-        void visitRotateTransform(RotateTransform *rotateNode) {
-            visitTransformNode(rotateNode);
-        }
-
-        HitRecord& getHitRecord() {
-            return hitRecord;
-        }
+            HitRecord& getHitRecord() {
+                return hitRecord;
+            }
 
         private:
-        stack<glm::mat4>& modelview; // the modelview matrix stack
-        glm::vec4 s;                 // the camera position
-        glm::vec4 v;                 // the ray direction
+            stack<glm::mat4>& modelview; // the modelview matrix stack
+            glm::vec4 s;                 // the camera position
+            glm::vec4 v;                 // the ray direction
 
-        Box box;                     // the box object
-        Sphere sphere;               // the sphere object
-        Cone cone;                   // the cone object
+            AbstractRaytraceObject *raytraceObject;     // the abstract raytrace object
+            Box box;                                    // the box object
+            Sphere sphere;                              // the sphere object
+            Cone cone;                                  // the cone object
+            Cylinder cylinder;                          // the cylinder object
 
-        // HitRecord object to store the hit information
-        HitRecord hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
-
-        // Returns the normal vector at the intersection point based on the object type
-        glm::vec4 getNormal(glm::vec4 intersectionPoint, string instanceName) {
-            if (instanceName == "box") {
-                return box.getNormal(intersectionPoint);
-            } else if (instanceName == "sphere") {
-                return sphere.getNormal(intersectionPoint);
-            } else if (instanceName == "cone") {
-                return cone.getNormal(intersectionPoint);
-            } else {
-                return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-            }
-        }
+            // HitRecord object to store the hit information
+            HitRecord hitRecord = HitRecord(std::numeric_limits<float>::infinity(),
+                                    glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
    };
 }
 
