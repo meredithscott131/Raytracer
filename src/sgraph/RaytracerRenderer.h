@@ -30,7 +30,7 @@ namespace sgraph {
          * @brief Construct a new GLScenegraphRenderer object
          */
         RaytracerRenderer(stack<glm::mat4>& mv, glm::vec4 o, glm::vec4 d) : modelview(mv), origin(o), direction(d) {
-            this->minTime = std::numeric_limits<float>::max();
+            this->minTime = std::numeric_limits<float>::infinity();
             this->hitRecordWithMinTime = HitRecord(minTime, glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
         }
 
@@ -56,8 +56,9 @@ namespace sgraph {
             glm::vec4 transformedOrigin = inverseTransform * origin;
             glm::vec4 transformedDirection = inverseTransform * direction;
 
-            bool hit;
-            float newTime;
+            bool hit;         // hit is true if the ray intersects with the object
+            float newTime;    // the time of intersection
+
             if (leafNode->getInstanceOf() == "box") {
                 hit = box.calcTimes(transformedOrigin, transformedDirection);
                 if (hit) {
@@ -69,7 +70,9 @@ namespace sgraph {
                     newTime = sphere.getTime();
                 }
             } else {
-                // TODO: Handle other instances
+                // Unknown object type, no hit
+                hit = false;
+                newTime = std::numeric_limits<float>::max();
             }
 
             if (hit) {
@@ -84,11 +87,13 @@ namespace sgraph {
                     intersectionPoint = mvt1 * intersectionPoint;
                     glm::mat4 mvt2 = modelview.top();
                     normal = mvt2 * normal;
-
-                    // Creating a new hit record with the new time and intersection point
+                    
                     HitRecord newHitRecord(newTime, intersectionPoint, normal, leafNode->getMaterial());
+
                     hitRecordWithMinTime = newHitRecord;
                 }
+            } else {
+                //cout << "NO HIT" << endl;
             }
         }
 
@@ -137,6 +142,7 @@ namespace sgraph {
         }
 
         private:
+        int hitCount = 0;
         stack<glm::mat4>& modelview;
         glm::vec4 origin;
         glm::vec4 direction;

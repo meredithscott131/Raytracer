@@ -6,49 +6,32 @@ class Box {
         Box() {};
         ~Box() {};
 
-        Box (Box &t) {
-            vmin = t.vmin;
-            vmax = t.vmax;
-            originMin = t.originMin;
-            originMax = t.originMax;
-        }
-
         // Calculates the intersection times of the ray with the box
-        bool calcTimes(glm::vec4 origin, glm::vec4 direction) {
-            float t_min_x = (vmin.x - origin.x) / direction.x;
-            float t_max_x = (vmax.x - origin.x) / direction.x;
-
+        bool calcTimes(glm::vec4 s, glm::vec4 v) {
+            float t_min_x = (-0.5 - s.x) / v.x;
+            float t_max_x = (0.5 - s.x) / v.x;
             if (t_min_x > t_max_x) {
                 std::swap(t_min_x, t_max_x);
             }
 
-            float t_min_y = (vmin.y - origin.y) / direction.y;
-            float t_max_y = (vmax.y - origin.y) / direction.y;
-
+            float t_min_y = (-0.5 - s.y) / v.y;
+            float t_max_y = (0.5 - s.y) / v.y;
             if (t_min_y > t_max_y) {
                 std::swap(t_min_y, t_max_y);
             }
 
-            originMin = (t_min_x > t_min_y) ? t_min_x : t_min_y;
-            originMax = (t_min_x < t_max_y) ? t_max_x : t_max_y;
-
-            if ((t_min_x > t_max_y) || (t_min_y > t_max_x)) {
-                return false;
-            }
-
-            float t_min_z = (vmin.z - origin.z) / direction.z;
-            float t_max_z = (vmax.z - origin.z) / direction.z;
-
+            float t_min_z = (-0.5 - s.z) / v.z;
+            float t_max_z = (0.5 - s.z) / v.z;
             if (t_min_z > t_max_z) {
                 std::swap(t_min_z, t_max_z);
             }
 
-            if ((originMin > t_max_z) || (t_min_z > originMax)) {
+            originMin = std::max(t_min_x, std::max(t_min_y, t_min_z));
+            originMax = std::min(t_max_x, std::min(t_max_y, t_max_z));
+
+            if (originMin > originMax) {
                 return false;
             }
-
-            originMin = (t_min_z > originMin) ? t_min_z : originMin;
-            originMax = (t_max_z < originMax) ? t_max_z : originMax;
 
             return true;
         }
@@ -57,8 +40,10 @@ class Box {
         float getTime() {
             if (originMin > 0 && originMax > 0 && originMin <= originMax) {
                 return originMin;
+            } else if (originMin < 0 && originMax > 0) {
+                return originMax;
             } else {
-                return std::numeric_limits<float>::max();
+                return INFINITY;
             }
         }
 

@@ -64,5 +64,7 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp"
-    }
+    },
+    "makefile.makePath": "mingw32-make",
+    "makefile.makefilePath": "src/Makefile"
 }

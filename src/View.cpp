@@ -133,9 +133,7 @@ void View::initObjects(Model& model) {
             shaderVarsToVertexAttribs,  // the shader variable -> attrib map
             model.getMesh(name));       // the actual mesh object
         objects[name] = obj;
-        //cout << "Created Mesh Instance for: " << name << endl;
-
-        
+        //cout << "Created Mesh Instance for: " << name << endl; 
     }
 
     cout << "Code is getting to textures in view::initobjects" << endl;
@@ -305,46 +303,48 @@ void View::display(Model& model)
     lightLocations.clear();
 }
 
+// Raytrace the scene and save it to a PPM file
 void View::raytrace(Model& model) {
     int width = window_dimensions[0];
     int height = window_dimensions[1];
 
-    // Allocate image buffer (RGB for each pixel)
+    // Allocate image buffer
     GLubyte* image = new GLubyte[3 * width * height];
 
     // Loop through each pixel
-    for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
-            float x = (float)w / (0.5f * width);
-            float y = (0.5f * height) - (float)h;
-            float z = -(0.5f * height) / tan(glm::radians(60.0f) / 2);
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            
+            float vx = -(width / 2.0f) + (float) x;
+            float vy = -(height / 2.0f) + (float) y;
+            float vz = -(0.5f * height) / tan(0.5f * glm::radians(60.0f));
 
             glm::vec4 origin(0.0f, 0.0f, 0.0f, 1.0f);
-            glm::vec4 direction(x, y, z, 0.0f);
+            glm::vec4 direction(vx, vy, vz, 0.0f);
 
-            while (!raytraceModelview.empty()) {
-                raytraceModelview.pop();
-            }
+            while (!raytraceModelview.empty()) raytraceModelview.pop();
 
             raytraceModelview.push(glm::mat4(1.0f));
-            raytraceModelview.top() *= glm::lookAt(cameraPosition, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+            raytraceModelview.top() = raytraceModelview.top() * glm::lookAt(cameraPosition,cameraTarget,glm::vec3(0.0f,1.0f,0.0f));
 
             raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, origin, direction);
             sg->getRoot()->accept(raytracerRenderer);
 
             HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
+            
+            int idx = 3 * ((height - 1 - y) * width + x);
 
-            int idx = 3 * ((height - 1 - h) * width + w); // Flip vertically to match PPM convention
-
-            if (isinf(hitRecord.t)) {
-                image[idx]     = 255; // R
-                image[idx + 1] = 255; // G
-                image[idx + 2] = 255; // B
+            if (hitRecord.t < std::numeric_limits<float>::infinity()) {
+                // hit, set pixel to white
+                image[idx]     = 255;
+                image[idx + 1] = 255;
+                image[idx + 2] = 255;
             } else {
+                // Not hit, set pixel to black
                 image[idx]     = 0;
                 image[idx + 1] = 0;
                 image[idx + 2] = 0;
-            }
+            }                       
         }
     }
 
@@ -406,7 +406,7 @@ void View::setCamera(TypeOfCamera mode, Model& model) {
     
     if (cameraMode == GLOBAL)
     {
-        cameraPosition = glm::vec3(0.0f, 200.0f, 200.0f);
+        cameraPosition = glm::vec3(0.0f, 0.0f, 200.0f);
         cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     }
     else if (cameraMode == CHOPPER)
