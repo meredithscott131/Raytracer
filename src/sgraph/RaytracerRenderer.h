@@ -56,9 +56,6 @@ namespace sgraph {
             glm::vec4 transformedOrigin = inverseTransform * origin;
             glm::vec4 transformedDirection = inverseTransform * direction;
 
-            //std::cout << "Ray origin: " << transformedOrigin.x << ", " << transformedOrigin.y << ", " << transformedOrigin.z << std::endl;
-            //std::cout << "Ray dir: " << transformedDirection.x << ", " << transformedDirection.y << ", " << transformedDirection.z << std::endl;
-
             bool hit;         // hit is true if the ray intersects with the object
             float newTime;    // the time of intersection
 
@@ -68,7 +65,6 @@ namespace sgraph {
                     newTime = box.getTime();
                 }
             } else if (leafNode->getInstanceOf() == "sphere") {
-                //cout << "Sphere hit" << endl;
                 hit = sphere.calcTimes(transformedOrigin, transformedDirection);
                 if (hit) {
                     newTime = sphere.getTime();
@@ -81,11 +77,6 @@ namespace sgraph {
 
             if (hit) {
                 if (newTime < hitRecordWithMinTime.t) {
-                    // ISSUE HERE?????
-                    // Hits are being detected and we get in this block
-                    // but in the view hit record the t is always 3.40282e+38f so default/infinity
-                    // hitRecordWithMinTime isn't being updated?
-
                     // Calculate the intersection point and normal
                     glm::vec4 intersectionPoint = transformedOrigin + (newTime * transformedDirection);
                     glm::vec4 normal;
@@ -96,11 +87,6 @@ namespace sgraph {
                     intersectionPoint = mvt1 * intersectionPoint;
                     glm::mat4 mvt2 = modelview.top();
                     normal = mvt2 * normal;
-
-                    //cout << "Hit at t = " << newTime << " with normal: " << normal.x << ", " << normal.y << ", " << normal.z << endl;
-                    // t values have range 0.0 to 0.296174 by time of force quit
-                    // normals also have value range
-                    //cout << "Hit at intersection point: " << intersectionPoint.x << ", " << intersectionPoint.y << ", " << intersectionPoint.z << endl;
                     
                     HitRecord newHitRecord(newTime, intersectionPoint, normal, leafNode->getMaterial());
 

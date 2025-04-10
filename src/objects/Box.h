@@ -26,11 +26,8 @@ class Box {
                 std::swap(t_min_z, t_max_z);
             }
 
-            originMin = (t_min_x > t_min_y) ? t_min_x : t_min_y;
-            originMax = (t_min_x < t_max_y) ? t_max_x : t_max_y;
-
-            originMin = (t_min_z > originMin) ? t_min_z : originMin;
-            originMax = (t_max_z < originMax) ? t_max_z : originMax;
+            originMin = std::max(t_min_x, std::max(t_min_y, t_min_z));
+            originMax = std::min(t_max_x, std::min(t_max_y, t_max_z));
 
             if (originMin > originMax || originMax < 0) {
                 return false;

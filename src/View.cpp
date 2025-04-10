@@ -312,15 +312,15 @@ void View::raytrace(Model& model) {
     GLubyte* image = new GLubyte[3 * width * height];
 
     // Loop through each pixel
-    for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
             
-            float x = (float) w - (0.5f * width);
-            float y = -((0.5f * height)) + (float) h;
-            float z = -(0.5f * height) / tan(glm::radians(60.0f) / 2);
+            float vx = -(width / 2.0f) + (float) x;
+            float vy = -(height / 2.0f) + (float) y;
+            float vz = -(0.5f * height) / tan(0.5f * glm::radians(60.0f));
 
             glm::vec4 origin(0.0f, 0.0f, 0.0f, 1.0f);
-            glm::vec4 direction(x, y, z, 0.0f);
+            glm::vec4 direction(vx, vy, vz, 0.0f);
 
             while (!raytraceModelview.empty()) raytraceModelview.pop();
 
@@ -331,14 +331,8 @@ void View::raytrace(Model& model) {
             sg->getRoot()->accept(raytracerRenderer);
 
             HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
-
-            if (hitRecord.hit) {
-                // Right now T is always printing: 3.40282e+38f so infinity aka no hit
-                // everything in the hitRecord is still it's default values despite it updating in the renderer
-                // cout << hitRecord.t << " " << hitRecord.point.x << " " << hitRecord.point.y << " " << hitRecord.point.z << " " << endl;
-            }
             
-            int idx = 3 * ((height - 1 - h) * width + w);
+            int idx = 3 * ((height - 1 - y) * width + x);
 
             if (hitRecord.t < std::numeric_limits<float>::infinity()) {
                 // hit, set pixel to white
