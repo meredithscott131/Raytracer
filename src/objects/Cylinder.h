@@ -1,9 +1,9 @@
 #ifndef __CYLINDER_H__
 #define __CYLINDER_H__
 
-#include "RaytraceObject.h" // Ensure the base class is included
+#include "AbstractRaytraceObject.h" // Ensure the base class is included
 
-class Cylinder : public RaytraceObject {
+class Cylinder : public AbstractRaytraceObject {
     Cylinder() {};
     ~Cylinder() {};
 };

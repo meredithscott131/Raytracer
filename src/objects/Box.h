@@ -1,10 +1,10 @@
 #ifndef __BOX_H__
 #define __BOX_H__
 
-#include "RaytraceObject.h"
+#include "AbstractRaytraceObject.h"
 
 // Box raytrace object
-class Box : public RaytraceObject {
+class Box : public AbstractRaytraceObject {
     public:
         Box() {};
         ~Box() {};

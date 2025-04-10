@@ -1,13 +1,13 @@
-#ifndef __RAYTRACE_OBJECT_H__
-#define __RAYTRACE_OBJECT_H__
+#ifndef __ABSTRACT_RAYTRACE_OBJECT_H__
+#define __ABSTRACT_RAYTRACE_OBJECT_H__
 
 #include <glm/glm.hpp>
 
 // Base class for all raytrace objects
-class RaytraceObject {
+class AbstractRaytraceObject {
     public:
-        RaytraceObject() {};
-        virtual ~RaytraceObject() {};
+        AbstractRaytraceObject() {};
+        virtual ~AbstractRaytraceObject() {};
 
         // Check if the given ray intersects with the object
         virtual bool didHit(glm::vec4 s, glm::vec4 v) = 0;

@@ -1,10 +1,10 @@
 #ifndef __SPHERE_H__
 #define __SPHERE_H__
 
-#include "RaytraceObject.h"
+#include "AbstractRaytraceObject.h"
 
 // Sphere raytrace object
-class Sphere : public RaytraceObject {
+class Sphere : public AbstractRaytraceObject {
     public:
         Sphere() {};
         ~Sphere() {};
