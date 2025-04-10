@@ -32,7 +32,7 @@ class Cylinder : public AbstractRaytraceObject {
                 std::swap(tMinY, tMaxY); 
             }
             
-            if ((tMin > tMaxY) || (tMinY > tMax)) {
+            if ((tMin > tMaxY) || (tMax < tMinY)) {
                 return false;
             }
         
@@ -57,24 +57,25 @@ class Cylinder : public AbstractRaytraceObject {
         glm::vec4 getNormal(glm::vec4 intersectionPoint) override {        
             glm::vec4 normal(0,0,0,0);
         
-            bool onEdge;
+            bool onTopBottom;
         
+            // Check if the intersection point is on the top or bottom of the cylinder
             if ((intersectionPoint.y > (vMax.y - 0.001f)) &&
             (intersectionPoint.y < (vMax.y + 0.001f))) {
                 normal.y = 1;
-                onEdge = true;
+                onTopBottom = true;
             }
             else if ((intersectionPoint.y > (vMin.y - 0.001f)) &&
             (intersectionPoint.y < (vMin.y + 0.001f))) {
                 normal.y = -1;
-                onEdge = true;
+                onTopBottom = true;
             }
             else {
                 normal.y = 0.0f;
-                onEdge = false;
+                onTopBottom = false;
             }
         
-            if (onEdge) {
+            if (onTopBottom) {
                 if ((intersectionPoint.x < (vMax.x + 0.001f)) &&
                 (intersectionPoint.x > (vMax.x - 0.001f))) {
                     normal.x = 1;
