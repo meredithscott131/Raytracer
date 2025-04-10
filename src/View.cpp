@@ -16,6 +16,7 @@ using namespace std;
 #include "HitRecord.h"
 #include "sgraph/SGNodeVisitor.h"
 #include "PPMImageWriter.h"
+#include "Ray.h"
 
 
 View::View() {}
@@ -117,7 +118,6 @@ void View::initObjects(Model& model) {
         util::ObjectInstance * obj = new util::ObjectInstance(it->first);
         obj->initPolygonMesh(shaderLocations,shaderVarsToVertexAttribs,it->second);
         objects[it->first] = obj;
-        //cout << "Created SG Instance for: " << it->first << endl;
     }
 
     // Add the meshes to the scenegraph renderer
@@ -133,10 +133,7 @@ void View::initObjects(Model& model) {
             shaderVarsToVertexAttribs,  // the shader variable -> attrib map
             model.getMesh(name));       // the actual mesh object
         objects[name] = obj;
-        //cout << "Created Mesh Instance for: " << name << endl; 
     }
-
-    cout << "Code is getting to textures in view::initobjects" << endl;
     
     glEnable(GL_TEXTURE_2D);
     vector<string> textureNames = model.getTextureNames();
@@ -171,17 +168,6 @@ void View::initShaderVariables(vector<util::Light>& lights) {
         stringstream name;
         name << "light[" << i << "]";
 
-        /*
-        cout << "View Init Light: " << name.str() << endl;
-        cout << "View Init Ambient: " << loc.ambient << endl;
-        cout << "View Init Diffuse: " << loc.diffuse << endl;
-        cout << "View Init Specular: " << loc.specular << endl;
-        cout << "View Init Position: " << loc.position << endl;
-        cout << "View Init Position: " << loc.position << endl;
-        cout << "View Init Spot Direction: " << loc.spotdirection << endl;
-        cout << "View Init Spot Cutoff: " << loc.spotcutoff << endl;
-        */
-
         loc.ambient = shaderLocations.getLocation(name.str()+".ambient");
         loc.diffuse = shaderLocations.getLocation(name.str()+".diffuse");
         loc.specular = shaderLocations.getLocation(name.str()+".specular");
@@ -196,7 +182,7 @@ void View::initShaderVariables(vector<util::Light>& lights) {
 void View::display(Model& model)
 {
     program.enable();
-    glClearColor(1,1,1,1);                                  //set the background color to be black
+    glClearColor(1,1,1,1);                                  // set the background color to be black
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // clear the background
     glEnable(GL_DEPTH_TEST);
 
@@ -238,9 +224,6 @@ void View::display(Model& model)
     sgraph::GLScenegraphLighter *lighter = new sgraph::GLScenegraphLighter(lighter_mv, lights, coordinates);
     
     sg->getRoot()->accept(lighter);
-    
-    //cout << "Number of lights: " << lights.size() << endl;
-    //cout << "Number of coordinates: " << coordinates.size() << endl;
 
     initShaderVariables(lights);
 
@@ -253,22 +236,6 @@ void View::display(Model& model)
 
     // pass the light properties to the shader
     for (int i = 0; i < lights.size(); i++) {
-        /*
-        glm::vec3 ambient = lights[i].getAmbient();
-        glm::vec3 diffuse = lights[i].getDiffuse();
-        glm::vec3 specular = lights[i].getSpecular();
-        glm::vec3 position = lights[i].getPosition();
-        glm::vec3 spotDirection = lights[i].getSpotDirection();
-        float spotCutoff = lights[i].getSpotCutoff();
-    
-        std::cout << "Light " << i << " Position: " << position.x << ", " << position.y << ", " << position.z << std::endl;
-        std::cout << "Ambient: " << ambient.r << ", " << ambient.g << ", " << ambient.b << std::endl;
-        std::cout << "Diffuse: " << diffuse.r << ", " << diffuse.g << ", " << diffuse.b << std::endl;
-        std::cout << "Specular: " << specular.r << ", " << specular.g << ", " << specular.b << std::endl;
-        std::cout << "Spot Direction: " << spotDirection.x << ", " << spotDirection.y << ", " << spotDirection.z << std::endl;
-        std::cout << "Spot Cutoff: " << spotCutoff << std::endl;
-        */
-        
         glUniform3fv(lightLocations[i].ambient, 1, glm::value_ptr(lights[i].getAmbient()));
         glUniform3fv(lightLocations[i].diffuse, 1, glm::value_ptr(lights[i].getDiffuse()));
         glUniform3fv(lightLocations[i].specular, 1,glm::value_ptr(lights[i].getSpecular()));
@@ -279,12 +246,10 @@ void View::display(Model& model)
     // Draw the scenegraph
     sg->getRoot()->accept(renderer);
 
-
     glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(shaderLocations.getLocation("image"), 0);
 
-    
     modelview.pop();
 
     glFlush();
@@ -305,13 +270,14 @@ void View::display(Model& model)
 
 // Raytrace the scene and save it to a PPM file
 void View::raytrace(Model& model) {
+    // Dimensions for the image
     int width = window_dimensions[0];
     int height = window_dimensions[1];
 
     // Allocate image buffer
     GLubyte* image = new GLubyte[3 * width * height];
 
-    //collect lights for raytracing
+    // Collect lights for raytracing
     vector<util::Light> raytraceLights;
     vector<string> coords;
     stack<glm::mat4> mvCopy;
@@ -323,52 +289,46 @@ void View::raytrace(Model& model) {
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
             
+            // Calculate ray direction
             float vx = -(width / 2.0f) + (float) x;
             float vy = -(height / 2.0f) + (float) y;
             float vz = -(0.5f * height) / tan(0.5f * glm::radians(60.0f));
 
-            glm::vec4 origin(0.0f, 0.0f, 0.0f, 1.0f);
-            glm::vec4 direction(vx, vy, vz, 0.0f);
+            glm::vec4 s(0.0f, 0.0f, 0.0f, 1.0f);    // camera position
+            glm::vec4 v(vx, vy, vz, 0.0f);          // ray direction
+            Ray ray(s, v);                          // create a ray
 
             while (!raytraceModelview.empty()) raytraceModelview.pop();
 
+            // Set up the raytracer modelview matrix
             raytraceModelview.push(glm::mat4(1.0f));
             raytraceModelview.top() = raytraceModelview.top() * glm::lookAt(cameraPosition,cameraTarget,glm::vec3(0.0f,1.0f,0.0f));
 
-            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, origin, direction);
+            // Raytrace the current pixel
+            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, ray);
             sg->getRoot()->accept(raytracerRenderer);
-
             HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
 
-            //camera -> hit
-            glm::vec3 viewDir = glm::normalize(glm::vec3(-direction)); 
+            // Normalize the ray direction
+            glm::vec3 viewDir = glm::normalize(glm::vec3(-v)); 
 
-            int idx = 3 * ((height - 1 - y) * width + x);
+            // Calculate pixel index in the image buffer
+            int idx = 3 * (y * width + x);
 
+            // Check if the ray hit an object
             if (hitRecord.t < std::numeric_limits<float>::infinity()) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                // hit, set pixel to white
-=======
-=======
->>>>>>> Stashed changes
+                // Hit, set pixel color based on shading
                 glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights);
                 image[idx]     = shadedColor.r * 255;
                 image[idx + 1] = shadedColor.g * 255;
                 image[idx + 2] = shadedColor.b * 255;
             }
             else {
-                // Not hit, set pixel to white
->>>>>>> Stashed changes
+                // No hit, set pixel to white
                 image[idx]     = 255;
                 image[idx + 1] = 255;
                 image[idx + 2] = 255;
-            } else {
-                // Not hit, set pixel to black
-                image[idx]     = 0;
-                image[idx + 1] = 0;
-                image[idx + 2] = 0;
-            }                       
+            }                   
         }
     }
 
@@ -378,73 +338,17 @@ void View::raytrace(Model& model) {
     delete[] image;
 }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-// // Returns RGB color values between 0 and 1
-// glm::vec4 View::getColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
-//     float a = hitRecord.material.getAbsorption();
-//     float r = hitRecord.material.getReflection();
-//     float t = hitRecord.material.getTransparency();
-
-//   
-//     spdlog::debug("material absorption: (int)" + (int) a);
-//     spdlog::debug("material reflection: (int)" + (int) r);
-//     spdlog::debug("material transparency: (int)" + (int) t);
-
-//     glm::vec4 absorption = glm::vec4(0,0,0,0);
-//     if (a > 0) {
-//         absorption = hitRecord.object_mat->getAbsorption() * getAbsorptionColor(hitRecord,sceneLightCollections,scenegraph);
-//     }
-
-//     glm::vec4 reflection = glm::vec4(0,0,0,0);
-//     spdlog::debug("reflective bounces: " + reflectiveBounces);
-//     if (r > 0) {
-//         if (reflectiveBounces < 5)  {
-//             reflection = r * getReflectionColor(hitRecord,sceneLightCollections,scenegraph,rayDirection,reflectiveBounces,refractiveBounces);
-//         }
-//         else {
-//             reflection = glm::vec4(1,1,1,0);
-//         }
-//     }
-
-// }
-
-// glm::vec4 View::getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
-//     // TODO
-// }
-
-// glm::vec4 View::getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
-//     // TODO
-// }
-
-// glm::vec4 View::getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
-//     // TODO
-// }
-
-// bool View::isInShadow(HitRecord hitRecord, vector<vector<util::Light>>& lights) {
-//     // TODO
-// }
-=======
-=======
->>>>>>> Stashed changes
-// // Returns rgb value of the pixel at (x,y) in the image
-// glm::vec3 View::shade(HitRecord& hitRecord) {
-//     glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
-//     if (hitRecord.hit) {
-//         color = hitRecord.material.getAmbient() + 
-//                 hitRecord.material.getDiffuse() + 
-//                 hitRecord.material.getSpecular() * hitRecord.material.getShininess();
-//     }
-//     return color;
-// }
-
-//new shade method:
+// Shade the given hit record with the lights
 glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights)
 {
-    glm::vec3 N = glm::normalize(glm::vec3(hitRecord.normal));
-    glm::vec3 V = glm::normalize(glm::vec3(viewDir));
-    glm::vec3 resultColor(0.0f);
+    // Initialize the final color
+    glm::vec3 color(0.0f);
 
+    // Normalize the normal and view direction
+    glm::vec3 n = glm::normalize(glm::vec3(hitRecord.normal));
+    glm::vec3 v = glm::normalize(glm::vec3(viewDir));
+
+    // Get material properties
     glm::vec3 ambient = hitRecord.material.getAmbient();
     glm::vec3 diffuse = hitRecord.material.getDiffuse();
     glm::vec3 specular = hitRecord.material.getSpecular();
@@ -452,35 +356,35 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
 
     for (const auto& light : lights)
     {
-        glm::vec3 L = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
-        glm::vec3 H = glm::normalize(L + V);
+        // Normalize the light direction
+        glm::vec3 l = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
+        glm::vec3 h = glm::normalize(l + v);
 
         // Spotlight effect
         float spotFactor = 1.0f;
         if (light.getSpotCutoff() > 0) {
             glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
-            glm::vec3 lightDir = glm::normalize(-L);  // reverse direction for comparison
+            glm::vec3 lightDir = glm::normalize(-l);  // reverse direction for comparison
             float spotCos = glm::dot(spotDir, lightDir);
             if (spotCos < light.getSpotCutoff()) {
                 spotFactor = 0.0f;
             }
         }
 
-        float diff = glm::max(glm::dot(N, L), 0.0f);
-        float spec = glm::pow(glm::max(glm::dot(N, H), 0.0f), shininess);
+        // Calculate the diffuse and specular components
+        float diff = glm::max(glm::dot(n, l), 0.0f);
+        float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), shininess);
 
+        // Calculate the final color components
         glm::vec3 ambientTerm = ambient * light.getAmbient();
         glm::vec3 diffuseTerm = diffuse * light.getDiffuse() * diff;
         glm::vec3 specularTerm = specular * light.getSpecular() * spec;
 
-        resultColor += spotFactor * (ambientTerm + diffuseTerm + specularTerm);
+        color += spotFactor * (ambientTerm + diffuseTerm + specularTerm);
     }
 
-    return glm::clamp(resultColor, 0.0f, 1.0f);
+    return glm::clamp(color, 0.0f, 1.0f);
 }
->>>>>>> Stashed changes
-
-
 
 // Set the camera position given the current camera mode
 void View::setCamera(TypeOfCamera mode, Model& model) {

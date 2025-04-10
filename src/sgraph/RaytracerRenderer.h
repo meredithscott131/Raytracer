@@ -16,6 +16,7 @@
 #include "../HitRecord.h"
 #include "../objects/Box.h"
 #include "../objects/Sphere.h"
+#include "../Ray.h"
 
 using namespace std;
 
@@ -29,9 +30,8 @@ namespace sgraph {
         /**
          * @brief Construct a new GLScenegraphRenderer object
          */
-        RaytracerRenderer(stack<glm::mat4>& mv, glm::vec4 o, glm::vec4 d) : modelview(mv), origin(o), direction(d) {
-            this->minTime = std::numeric_limits<float>::infinity();
-            this->hitRecordWithMinTime = HitRecord(minTime, glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
+        RaytracerRenderer(stack<glm::mat4>& mv, Ray ray) : modelview(mv), s(glm::vec4(ray.origin, 1.0f)), v(glm::vec4(ray.direction, 0.0f)) {
+            this->hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
         }
 
         /**
@@ -46,51 +46,51 @@ namespace sgraph {
         }
 
         /**
-         * @brief Draw the instance for the leaf, after passing the 
-         * modelview and color to the shader
+         * @brief Updates hit record if the ray hits the object
          * 
          * @param leafNode 
          */
         void visitLeafNode(LeafNode *leafNode) {
+            // Get the modelview matrix for the current node
             glm::mat4 inverseTransform = glm::inverse(modelview.top());
-            glm::vec4 transformedOrigin = inverseTransform * origin;
-            glm::vec4 transformedDirection = inverseTransform * direction;
+            glm::vec4 transformedS = inverseTransform * s;
+            glm::vec4 transformedV = inverseTransform * v;
 
             bool hit;         // hit is true if the ray intersects with the object
-            float newTime;    // the time of intersection
+            float time;       // the time of intersection
 
             if (leafNode->getInstanceOf() == "box") {
-                hit = box.calcTimes(transformedOrigin, transformedDirection);
+                hit = box.didHit(transformedS, transformedV);
                 if (hit) {
-                    newTime = box.getTime();
+                    time = box.getTime();
                 }
             } else if (leafNode->getInstanceOf() == "sphere") {
-                hit = sphere.calcTimes(transformedOrigin, transformedDirection);
+                hit = sphere.didHit(transformedS, transformedV);
                 if (hit) {
-                    newTime = sphere.getTime();
+                    time = sphere.getTime();
                 }
             } else {
                 // Unknown object type, no hit
                 hit = false;
-                newTime = std::numeric_limits<float>::max();
+                time = std::numeric_limits<float>::infinity();
             }
 
             if (hit) {
-                if (newTime < hitRecordWithMinTime.t) {
+                if (time < hitRecord.t) {
                     // Calculate the intersection point and normal
-                    glm::vec4 intersectionPoint = transformedOrigin + (newTime * transformedDirection);
+                    glm::vec4 intersectionPoint = transformedS + (time * transformedV);
                     glm::vec4 normal;
                     normal = getNormal(intersectionPoint, leafNode->getInstanceOf());
 
                     // Transform the intersection point and normal back to world coordinates
-                    glm::mat4 mvt1 = modelview.top();
-                    intersectionPoint = mvt1 * intersectionPoint;
-                    glm::mat4 mvt2 = modelview.top();
-                    normal = mvt2 * normal;
+                    glm::mat4 mv = modelview.top();
+                    intersectionPoint = mv * intersectionPoint;
+                    glm::mat4 updatedMV = modelview.top();
+                    normal = updatedMV * normal;
                     
-                    HitRecord newHitRecord(newTime, intersectionPoint, normal, leafNode->getMaterial());
-
-                    hitRecordWithMinTime = newHitRecord;
+                    // Create a new HitRecord object with the updated values
+                    HitRecord updatedHitRecord(time, intersectionPoint, normal, leafNode->getMaterial());
+                    hitRecord = updatedHitRecord;
                 }
             } else {
                 //cout << "NO HIT" << endl;
@@ -138,19 +138,21 @@ namespace sgraph {
         }
 
         HitRecord& getHitRecord() {
-            return hitRecordWithMinTime;
+            return hitRecord;
         }
 
         private:
-        int hitCount = 0;
-        stack<glm::mat4>& modelview;
-        glm::vec4 origin;
-        glm::vec4 direction;
-        Box box;
-        Sphere sphere;
-        float minTime;
-        HitRecord hitRecordWithMinTime = HitRecord(minTime, glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
+        stack<glm::mat4>& modelview; // the modelview matrix stack
+        glm::vec4 s;                 // the camera position
+        glm::vec4 v;                 // the ray direction
 
+        Box box;                     // the box object
+        Sphere sphere;               // the sphere object
+
+        // HitRecord object to store the hit information
+        HitRecord hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
+
+        // Returns the normal vector at the intersection point based on the object type
         glm::vec4 getNormal(glm::vec4 intersectionPoint, string instanceName) {
             if (instanceName == "box") {
                 return box.getNormal(intersectionPoint);

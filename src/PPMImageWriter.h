@@ -8,14 +8,13 @@
 
 /**
  * @brief This class is used to save an image in the ASCII PPM format (P3)
- * 
  */
 class PPMImageWriter {
 
 public:
     GLubyte* image; // Pointer to the image data
-    int width;     // Width of the image
-    int height;    // Height of the image
+    int width;      // Width of the image
+    int height;     // Height of the image
 
     PPMImageWriter(GLubyte* image, int width, int height) {
         this->image = image;

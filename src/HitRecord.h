@@ -4,23 +4,17 @@
 #include <glm/glm.hpp>
 #include "Material.h"
 
-//Stores all information to determine closest object that was hit, along with information about that object
-//in order to calculate shading.
+/*
+Stores all information to determine closest object that was hit, along with
+information about that object in order to calculate shading.
+*/
 class HitRecord {
 public:
-    //the ray parameter at the intersection
-    float t;  
-    //the coordinates of the intersection point                      
-    glm::vec3 point;
-    //surface normal at intersection                
-    glm::vec3 normal;    
-    //material at intersection          
-    util::Material material;        
-    bool hit;                       
-
-    //i have no idea if we need to use textures here but if we do we'll uncomment these lines
-    // glm::vec2 texCoords;
-    // Texture* texture;
+    float t;                        // the ray parameter at the intersection                    
+    glm::vec3 point;                // the coordinates of the intersection point                 
+    glm::vec3 normal;               // surface normal at intersection              
+    util::Material material;        // material at intersection       
+    bool hit;                       // whether the ray hit an object                   
 
     HitRecord() {
         t = std::numeric_limits<float>::max();

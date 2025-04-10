@@ -172,7 +172,9 @@ void Controller::onkey(int key, int scancode, int action, int mods) {
 
             // If raytracing mode, save the scene as a png file
             if (model.getRenderMode() == RAYTRACE) {
+                cout << "Raytracing..." << endl;
                 view.raytrace(model);
+                cout << "Raytracing Completed" << endl;
             }
         }
         //start roll animation
@@ -206,17 +208,7 @@ void Controller::onkey(int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_1) view.changeCameraMode(View::GLOBAL);
         else if (key == GLFW_KEY_2) view.changeCameraMode(View::CHOPPER);
         else if (key == GLFW_KEY_3) view.changeCameraMode(View::DRONE);
-
-
-        //changing between render modes
-        if (key == GLFW_KEY_S) {
-            std::cout <<"about to make a render switch to :"<< (model.getRenderMode() == OPENGL ? "OpenGL" : "Ray Tracing") <<" mode.\n";
-            model.toggleRenderMode();
-            std::cout << "Switched to "<< (model.getRenderMode() == OPENGL ? "OpenGL" : "Ray Tracing") <<" mode.\n";
-        }
     } 
-
-
 }
 
 void Controller::reshape(int width, int height) 
