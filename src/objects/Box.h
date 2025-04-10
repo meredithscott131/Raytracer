@@ -7,21 +7,21 @@ class Box {
         ~Box() {};
 
         // Calculates the intersection times of the ray with the box
-        bool calcTimes(glm::vec4 origin, glm::vec4 direction) {
-            float t_min_x = -(0.5 - origin.x) / direction.x;
-            float t_max_x = (0.5 - origin.x) / direction.x;
+        bool calcTimes(glm::vec4 s, glm::vec4 v) {
+            float t_min_x = -(0.5 - s.x) / v.x;
+            float t_max_x = (0.5 - s.x) / v.x;
             if (t_min_x > t_max_x) {
                 std::swap(t_min_x, t_max_x);
             }
 
-            float t_min_y = -(0.5 - origin.y) / direction.y;
-            float t_max_y = (0.5 - origin.y) / direction.y;
+            float t_min_y = -(0.5 - s.y) / v.y;
+            float t_max_y = (0.5 - s.y) / v.y;
             if (t_min_y > t_max_y) {
                 std::swap(t_min_y, t_max_y);
             }
 
-            float t_min_z = -(0.5 - origin.z) / direction.z;
-            float t_max_z = (0.5 - origin.z) / direction.z;
+            float t_min_z = -(0.5 - s.z) / v.z;
+            float t_max_z = (0.5 - s.z) / v.z;
             if (t_min_z > t_max_z) {
                 std::swap(t_min_z, t_max_z);
             }
