@@ -3,27 +3,20 @@
 ### Team
 Thomas Yi and Meredith Scott
 
-
 ## Working Features
-
-
-## Meredith's Contributions
-- 1.2 Setting up the basic ray tracing
-- Designed ray tracing functions
+- 3D ray class `Ray.h`
+- HitRecord class `HitRecord.h`
+- Toggling between OpenGL and Raytracing modes via 'S' key in `Controller::onkey()` and `Model::toggleRenderMode()`
+- Rendering of the ray caster via `RaytracerRenderer.h` and `View::raytrace()`
+- Calculating of ray intersections via object classes `Box.h` and `Sphere.h`
+- Writing raytraced output to a PPM image via `PPMImageWriter.h` and `View::raytrace()`
 
 ## Thomas's Contributions
 - 1.1 Laying the foundation
+- 1.3 Coloring via `View::shade()`
+- 1.3 Implemented `PPMImageWriter.h`
+- 1.5 Shading via `View::shade()`
 
-### Texture Citation:
-
-Grass.png - Drawn in Photoshop
-
-Brick.png - found at https://www.google.com/search?q=brick+png+texture&rlz=1C1ONGR_enUS1076US1076&oq=brick+png+texture&gs_lcrp=EgZjaHJvbWUqBwgAEAAYgAQyBwgAEAAYgAQyCAgBEAAYFhgeMggIAhAAGBYYHjIICAMQABgWGB4yCAgEEAAYFhgeMggIBRAAGBYYHjIICAYQABgWGB4yCAgHEAAYFhgeMggICBAAGBYYHjIICAkQABgWGB7SAQg0NjY0ajBqN6gCALACAA&sourceid=chrome&ie=UTF-8#imgrc=rVXFeSVqVjcacM&imgdii=YLG1izBhrzVLbM
-
-
-Roof Tiles : tile.jpg - found at https://www.google.com/search?q=roof+tile+texture&sca_esv=218665eea446f0ac&rlz=1C1ONGR_enUS1076US1076&sxsrf=AHTn8zrGaEo3gwgD5zaCMD6UmaBU8Zi2Ow%3A1743118783634&ei=v-HlZ925Jr2i5NoPu-aH-Ak&ved=0ahUKEwidlZm_t6uMAxU9EVkFHTvzAZ8Q4dUDCBA&uact=5&oq=roof+tile+texture&gs_lp=Egxnd3Mtd2l6LXNlcnAiEXJvb2YgdGlsZSB0ZXh0dXJlMgsQABiABBiRAhiKBTILEAAYgAQYkQIYigUyBRAAGIAEMgoQABiABBhDGIoFMgsQABiABBiRAhiKBTILEAAYgAQYkQIYigUyBhAAGBYYHjIGEAAYFhgeMgYQABgWGB4yBhAAGBYYHkjDFVDwBljXFHADeAGQAQCYAYUBoAGtCqoBBDE1LjK4AQPIAQD4AQGYAhSgAvoKwgIKEAAYsAMY1gQYR8ICChAuGIAEGCcYigXCAgoQIxiABBgnGIoFwgIEECMYJ8ICDhAuGIAEGLEDGIMBGIoFwgIOEAAYgAQYsQMYgwEYigXCAhMQLhiABBhDGMcBGIoFGI4FGK8BwgIOEC4YgAQYsQMY0QMYxwHCAg4QLhiABBjHARiOBRivAcICDRAAGIAEGLEDGEMYigXCAggQABiABBixA8ICDRAAGIAEGLEDGBQYhwLCAgcQABiABBgKwgIQEAAYgAQYsQMYQxiDARiKBcICChAAGIAEGBQYhwKYAwCIBgGQBgiSBwQxNy4zoAezfbIHBDE0LjO4B-8K&sclient=gws-wiz-serp#vhid=b9BxPD_JybzpmM&vssid=_x-HlZ-X5CMKj5NoP-9uwyQU_56
-
-skin.png: found at https://www.google.com/search?q=human+skin+texture&rlz=1C1ONGR_enUS1076US1076&oq=human+skin+text&gs_lcrp=EgZjaHJvbWUqDAgAEAAYFBiHAhiABDIMCAAQABgUGIcCGIAEMgYIARBFGDkyBwgCEAAYgAQyBwgDEAAYgAQyBwgEEAAYgAQyBwgFEAAYgAQyDAgGEAAYFBiHAhiABDIHCAcQABiABDIHCAgQABiABDIHCAkQABiABNIBCDMzMTVqMGo3qAIAsAIA&sourceid=chrome&ie=UTF-8#vhid=yTPliPs1tNJiXM&vssid=_DevlZ7nLFvyf5NoPw_LzyQo_36
-
-
-
+## Meredith's Contributions
+- 1.2 Setting up the basic ray tracing
+- 1.3/1.4 Implementing `RaytraceRenderer.h`, `View::raytrace()`, and the object classes `Box.h` and `Sphere.h`
