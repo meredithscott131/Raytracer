@@ -16,6 +16,7 @@
 #include "../HitRecord.h"
 #include "../objects/Box.h"
 #include "../objects/Sphere.h"
+#include "../Ray.h"
 
 using namespace std;
 
@@ -29,7 +30,7 @@ namespace sgraph {
         /**
          * @brief Construct a new GLScenegraphRenderer object
          */
-        RaytracerRenderer(stack<glm::mat4>& mv, glm::vec4 s, glm::vec4 v) : modelview(mv), s(s), v(v) {
+        RaytracerRenderer(stack<glm::mat4>& mv, Ray ray) : modelview(mv), s(glm::vec4(ray.origin, 1.0f)), v(glm::vec4(ray.direction, 0.0f)) {
             this->hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
         }
 
@@ -59,12 +60,12 @@ namespace sgraph {
             float time;       // the time of intersection
 
             if (leafNode->getInstanceOf() == "box") {
-                hit = box.calcTimes(transformedS, transformedV);
+                hit = box.didHit(transformedS, transformedV);
                 if (hit) {
                     time = box.getTime();
                 }
             } else if (leafNode->getInstanceOf() == "sphere") {
-                hit = sphere.calcTimes(transformedS, transformedV);
+                hit = sphere.didHit(transformedS, transformedV);
                 if (hit) {
                     time = sphere.getTime();
                 }
@@ -87,8 +88,8 @@ namespace sgraph {
                     glm::mat4 updatedMV = modelview.top();
                     normal = updatedMV * normal;
                     
+                    // Create a new HitRecord object with the updated values
                     HitRecord updatedHitRecord(time, intersectionPoint, normal, leafNode->getMaterial());
-
                     hitRecord = updatedHitRecord;
                 }
             } else {

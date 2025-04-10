@@ -16,6 +16,7 @@ using namespace std;
 #include "HitRecord.h"
 #include "sgraph/SGNodeVisitor.h"
 #include "PPMImageWriter.h"
+#include "Ray.h"
 
 
 View::View() {}
@@ -295,6 +296,7 @@ void View::raytrace(Model& model) {
 
             glm::vec4 s(0.0f, 0.0f, 0.0f, 1.0f);    // camera position
             glm::vec4 v(vx, vy, vz, 0.0f);          // ray direction
+            Ray ray(s, v);                          // create a ray
 
             while (!raytraceModelview.empty()) raytraceModelview.pop();
 
@@ -303,7 +305,7 @@ void View::raytrace(Model& model) {
             raytraceModelview.top() = raytraceModelview.top() * glm::lookAt(cameraPosition,cameraTarget,glm::vec3(0.0f,1.0f,0.0f));
 
             // Raytrace the current pixel
-            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, s, v);
+            raytracerRenderer = new sgraph::RaytracerRenderer(raytraceModelview, ray);
             sg->getRoot()->accept(raytracerRenderer);
             HitRecord& hitRecord = dynamic_cast<sgraph::RaytracerRenderer*>(raytracerRenderer)->getHitRecord();
 

@@ -1,53 +1,57 @@
 #ifndef __BOX_H__
 #define __BOX_H__
 
-class Box {
+#include "RaytraceObject.h"
+
+// Box raytrace object
+class Box : public RaytraceObject {
     public:
         Box() {};
         ~Box() {};
 
-        // Calculates the intersection times of the ray with the box
-        bool calcTimes(glm::vec4 s, glm::vec4 v) {
-            float t_min_x = (-0.5 - s.x) / v.x;
-            float t_max_x = (0.5 - s.x) / v.x;
-            if (t_min_x > t_max_x) {
-                std::swap(t_min_x, t_max_x);
+        bool didHit(glm::vec4 s, glm::vec4 v) {
+            // Calculate the minimum and maximum t values for the x dimension
+            float txMin = (-0.5 - s.x) / v.x;
+            float txMax = (0.5 - s.x) / v.x;
+            if (txMin > txMax) {
+                std::swap(txMin, txMax);
             }
 
-            float t_min_y = (-0.5 - s.y) / v.y;
-            float t_max_y = (0.5 - s.y) / v.y;
-            if (t_min_y > t_max_y) {
-                std::swap(t_min_y, t_max_y);
+            // Calculate the minimum and maximum t values for the y dimension
+            float tyMin = (-0.5 - s.y) / v.y;
+            float tyMax = (0.5 - s.y) / v.y;
+            if (tyMin > tyMax) {
+                std::swap(tyMin, tyMax);
             }
 
-            float t_min_z = (-0.5 - s.z) / v.z;
-            float t_max_z = (0.5 - s.z) / v.z;
-            if (t_min_z > t_max_z) {
-                std::swap(t_min_z, t_max_z);
+            // Calculate the minimum and maximum t values for the z dimension
+            float tzMin = (-0.5 - s.z) / v.z;
+            float tzMax = (0.5 - s.z) / v.z;
+            if (tzMin > tzMax) {
+                std::swap(tzMin, tzMax);
             }
 
-            originMin = std::max(t_min_x, std::max(t_min_y, t_min_z));
-            originMax = std::min(t_max_x, std::min(t_max_y, t_max_z));
+            // Calculate the minimum and maximum t values for the intersection
+            tMin = std::max(txMin, std::max(tyMin, tzMin));
+            tMax = std::min(txMax, std::min(tyMax, tzMax));
 
-            if (originMin > originMax) {
+            if (tMin > tMax) {
                 return false;
             }
 
             return true;
         }
 
-        // Returns the time of intersection with the box
         float getTime() {
-            if (originMin > 0 && originMax > 0 && originMin <= originMax) {
-                return originMin;
-            } else if (originMin < 0 && originMax > 0) {
-                return originMax;
+            if (tMin > 0 && tMax > 0 && tMin <= tMax) {
+                return tMin;
+            } else if (tMin < 0 && tMax > 0) {
+                return tMax;
             } else {
                 return INFINITY;
             }
         }
 
-        // Returns the normal vector at the intersection point
         glm::vec4 getNormal(glm::vec4 intersectionPoint) {
             glm::vec4 normal(0, 0, 0, 0);
 
@@ -81,8 +85,6 @@ class Box {
     private:
         glm::vec3 vmin = glm::vec3(-0.5f, -0.5f, -0.5f);
         glm::vec3 vmax = glm::vec3(0.5f, 0.5f, 0.5f);
-        float originMin;
-        float originMax;
 };
 
 #endif

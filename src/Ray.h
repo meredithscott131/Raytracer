@@ -3,7 +3,7 @@
 
 #include <glm/glm.hpp>
 
-//Represents a 3D ray, containing a starting 3D point and a direction as a 3D vector
+// Represents a 3D ray, containing a starting 3D point and a direction as a 3D vector
 class Ray {
 public:
     glm::vec3 origin;
