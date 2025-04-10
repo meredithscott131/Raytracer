@@ -99,6 +99,8 @@ private:
     bool isInShadow(HitRecord hitRecord, vector<vector<util::Light>> &lights);
     stack<glm::mat4> raytraceModelview;
     sgraph::RaytracerRenderer *raytracerRenderer;
+    glm::vec3 shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights);
+
 };
 
 #endif
