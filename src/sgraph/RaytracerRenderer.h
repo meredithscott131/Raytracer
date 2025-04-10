@@ -16,6 +16,7 @@
 #include "../HitRecord.h"
 #include "../objects/Box.h"
 #include "../objects/Sphere.h"
+#include "../objects/Cone.h"
 #include "../Ray.h"
 
 using namespace std;
@@ -69,6 +70,12 @@ namespace sgraph {
                 if (hit) {
                     time = sphere.getTime();
                 }
+            } else if (leafNode->getInstanceOf() == "cone") {
+                hit = cone.didHit(transformedS, transformedV);
+                if (hit) {
+                    time = cone.getTime();
+                }
+
             } else {
                 // Unknown object type, no hit
                 hit = false;
@@ -148,6 +155,7 @@ namespace sgraph {
 
         Box box;                     // the box object
         Sphere sphere;               // the sphere object
+        Cone cone;                   // the cone object
 
         // HitRecord object to store the hit information
         HitRecord hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
@@ -158,6 +166,8 @@ namespace sgraph {
                 return box.getNormal(intersectionPoint);
             } else if (instanceName == "sphere") {
                 return sphere.getNormal(intersectionPoint);
+            } else if (instanceName == "cone") {
+                return cone.getNormal(intersectionPoint);
             } else {
                 return glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
             }

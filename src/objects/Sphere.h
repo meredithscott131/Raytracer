@@ -9,7 +9,7 @@ class Sphere : public AbstractRaytraceObject {
         Sphere() {};
         ~Sphere() {};
 
-        bool didHit(glm::vec4 s, glm::vec4 v) {
+        bool didHit(glm::vec4 s, glm::vec4 v) override {
             float a = pow(v.x,2) + pow(v.y,2) + pow(v.z,2);
             float b = 2 * ((s.x * v.x) + (s.y * v.y) + (s.z * v.z));
             float c = pow(s.x,2) + pow(s.y,2) + pow(s.z,2) - pow(radius,2);
@@ -28,7 +28,7 @@ class Sphere : public AbstractRaytraceObject {
             return true;
         }
         
-        float getTime() {
+        float getTime() override {
             if (tMin > 0 && tMax > 0 && tMin <= tMax) {
                 return tMin;
             } else if (tMin < 0 && tMax > 0) {
@@ -38,7 +38,7 @@ class Sphere : public AbstractRaytraceObject {
             }
         }
 
-        glm::vec4 getNormal(glm::vec4 intersectionPoint) {
+        glm::vec4 getNormal(glm::vec4 intersectionPoint) override {
             glm::vec4 normal = glm::vec4(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z, 0.0f);
             return normal;
         }

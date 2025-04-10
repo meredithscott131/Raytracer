@@ -9,7 +9,7 @@ class Box : public AbstractRaytraceObject {
         Box() {};
         ~Box() {};
 
-        bool didHit(glm::vec4 s, glm::vec4 v) {
+        bool didHit(glm::vec4 s, glm::vec4 v) override {
             // Calculate the minimum and maximum t values for the x dimension
             float txMin = (-0.5 - s.x) / v.x;
             float txMax = (0.5 - s.x) / v.x;
@@ -42,7 +42,7 @@ class Box : public AbstractRaytraceObject {
             return true;
         }
 
-        float getTime() {
+        float getTime() override {
             if (tMin > 0 && tMax > 0 && tMin <= tMax) {
                 return tMin;
             } else if (tMin < 0 && tMax > 0) {
@@ -52,7 +52,7 @@ class Box : public AbstractRaytraceObject {
             }
         }
 
-        glm::vec4 getNormal(glm::vec4 intersectionPoint) {
+        glm::vec4 getNormal(glm::vec4 intersectionPoint) override {
             glm::vec4 normal(0, 0, 0, 0);
 
             if ((intersectionPoint.x < 0.5001f) && (intersectionPoint.x > 0.4999f)) {

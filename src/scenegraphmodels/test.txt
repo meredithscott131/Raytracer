@@ -1,5 +1,7 @@
 instance sphere models/sphere.obj
 instance box models/box.obj
+instance cone models/cone.obj
+instance cylinder models/cylinder.obj
 
 material mat-ball 
 emission 0 0 0
@@ -19,7 +21,7 @@ end-material
 
 group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 65 0 0 -1 end-lights
 
-leaf l1 l1 instanceof box add-lights nolights end-lights
+leaf l1 l1 instanceof cone add-lights nolights end-lights
 assign-material l1 mat-ball2
 translate t1 t1 0 0 0 add-lights nolights end-lights
 scale s1 s1 60 60 60 add-lights nolights end-lights
