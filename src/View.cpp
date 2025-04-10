@@ -347,8 +347,11 @@ void View::raytrace(Model& model) {
 
             if (hitRecord.t < std::numeric_limits<float>::infinity()) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 // hit, set pixel to white
 =======
+=======
+>>>>>>> Stashed changes
                 glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights);
                 image[idx]     = shadedColor.r * 255;
                 image[idx + 1] = shadedColor.g * 255;
@@ -375,6 +378,7 @@ void View::raytrace(Model& model) {
     delete[] image;
 }
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 // // Returns RGB color values between 0 and 1
 // glm::vec4 View::getColor(HitRecord hitRecord, vector<vector<util::Light>>& lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces) {
@@ -421,6 +425,8 @@ void View::raytrace(Model& model) {
 //     // TODO
 // }
 =======
+=======
+>>>>>>> Stashed changes
 // // Returns rgb value of the pixel at (x,y) in the image
 // glm::vec3 View::shade(HitRecord& hitRecord) {
 //     glm::vec3 color = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -473,6 +479,7 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
     return glm::clamp(resultColor, 0.0f, 1.0f);
 }
 >>>>>>> Stashed changes
+
 
 
 // Set the camera position given the current camera mode
