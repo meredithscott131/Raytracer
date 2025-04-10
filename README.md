@@ -14,9 +14,10 @@ Thomas Yi and Meredith Scott
 ## Thomas's Contributions
 - 1.1 Laying the foundation
 - 1.3 Coloring via `View::shade()`
-- 1.3 Implemented `PPMImageWriter.h`
 - 1.5 Shading via `View::shade()`
+- Configured scenegraph output
 
 ## Meredith's Contributions
 - 1.2 Setting up the basic ray tracing
 - 1.3/1.4 Implementing `RaytraceRenderer.h`, `View::raytrace()`, and the object classes `Box.h` and `Sphere.h`
+- 1.3 Implemented `PPMImageWriter.h`
