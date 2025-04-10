@@ -19,4 +19,4 @@ Thomas Yi and Meredith Scott
 
 ## Meredith's Contributions
 - 1.2 Setting up the basic ray tracing
-- 1.3/1.4 Implementing `RaytraceRenderer.h`, `View::raytrace()`, and the object classes `Box.h` and `Sphere.h`
+- 1.3/1.4 Implemented `RaytraceRenderer.h`, `View::raytrace()`, and the object classes `Box.h` and `Sphere.h`
