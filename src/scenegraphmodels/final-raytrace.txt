@@ -3,7 +3,6 @@ instance box models/box.obj
 instance cylinder models/cylinder.obj
 instance cone models/cone.obj
 
-# ========== MATERIALS ==========
 material mat-trunk
 emission 0 0 0
 ambient 0.4 0.2 0.1
