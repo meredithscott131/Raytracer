@@ -8,7 +8,7 @@ Thomas Yi and Meredith Scott
 - HitRecord class `HitRecord.h`
 - Toggling between OpenGL and Raytracing modes via 'S' key in `Controller::onkey()` and `Model::toggleRenderMode()`
 - Rendering of the ray caster via `RaytracerRenderer.h` and `View::raytrace()`
-- Calculating of ray intersections via object classes `Box.h` and `Sphere.h`
+- Calculating of ray intersections via object classes `Box.h`, `Sphere.h`, etc.
 - Writing raytraced output to a PPM image via `PPMImageWriter.h` and `View::raytrace()`
 
 ### Images Submitted
@@ -31,7 +31,5 @@ Thomas Yi and Meredith Scott
 
 ## Meredith's Contributions
 - 1.2 Setting up the basic ray tracing
-- 1.3/1.4 Implemented `RaytraceRenderer.h`, `View::raytrace()`, and the object classes `Box.h` and `Sphere.h`
-- 1.3 Implemented `PPMImageWriter.h`
-- 1.3 Coloring via `View::shade()`
-- Wrote intersects for cylinders and cones
+- 1.3/1.4 Implemented `RaytraceRenderer.h`, `View::raytrace()`, and the object classes `Box.h`, `Sphere.h`, etc.
+- 1.3 Basic coloring via `View::shade()`
