@@ -360,27 +360,43 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
         glm::vec3 l = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
         glm::vec3 h = glm::normalize(l + v);
 
-        // Spotlight effect
-        float spotFactor = 1.0f;
-        if (light.getSpotCutoff() > 0) {
-            glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
-            glm::vec3 lightDir = glm::normalize(-l);  // reverse direction for comparison
-            float spotCos = glm::dot(spotDir, lightDir);
-            if (spotCos < light.getSpotCutoff()) {
-                spotFactor = 0.0f;
+        // Determing if the current point is in shadow
+
+        // applying offset to shadow ray to avoid precision errors
+        glm::vec3 offsetOrigin = glm::vec3(hitRecord.point) + 0.001f * n;
+        Ray shadowRay(glm::vec4(offsetOrigin, 1.0f), glm::vec4(l, 0.0f));
+
+        // ray trace the shadow ray
+        sgraph::RaytracerRenderer* shadowRenderer = new sgraph::RaytracerRenderer(raytraceModelview, shadowRay);
+        sg->getRoot()->accept(shadowRenderer);
+        HitRecord& shadowHitRecord = shadowRenderer->getHitRecord();
+
+        float distToLight = glm::length(glm::vec3(light.getPosition()) - offsetOrigin);
+
+        // If point is in light, apply lighting
+        if (shadowHitRecord.t >= distToLight) {
+            // Spotlight effect
+            float spotFactor = 1.0f;
+            if (light.getSpotCutoff() > 0) {
+                glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
+                glm::vec3 lightDir = glm::normalize(-l);  // reverse direction for comparison
+                float spotCos = glm::dot(spotDir, lightDir);
+                if (spotCos < light.getSpotCutoff()) {
+                    spotFactor = 0.0f;
+                }
             }
+
+            // Calculate the diffuse and specular components
+            float diff = glm::max(glm::dot(n, l), 0.0f);
+            float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), shininess);
+
+            // Calculate the final color components
+            glm::vec3 ambientTerm = ambient * light.getAmbient();
+            glm::vec3 diffuseTerm = diffuse * light.getDiffuse() * diff;
+            glm::vec3 specularTerm = specular * light.getSpecular() * spec;
+
+            color += spotFactor * (ambientTerm + diffuseTerm + specularTerm);
         }
-
-        // Calculate the diffuse and specular components
-        float diff = glm::max(glm::dot(n, l), 0.0f);
-        float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), shininess);
-
-        // Calculate the final color components
-        glm::vec3 ambientTerm = ambient * light.getAmbient();
-        glm::vec3 diffuseTerm = diffuse * light.getDiffuse() * diff;
-        glm::vec3 specularTerm = specular * light.getSpecular() * spec;
-
-        color += spotFactor * (ambientTerm + diffuseTerm + specularTerm);
     }
 
     return glm::clamp(color, 0.0f, 1.0f);
