@@ -318,7 +318,7 @@ void View::raytrace(Model& model) {
             // Check if the ray hit an object
             if (hitRecord.t < std::numeric_limits<float>::infinity()) {
                 // Hit, set pixel color based on shading
-                glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights);
+                glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights, 5);
                 image[idx]     = shadedColor.r * 255;
                 image[idx + 1] = shadedColor.g * 255;
                 image[idx + 2] = shadedColor.b * 255;
@@ -339,7 +339,7 @@ void View::raytrace(Model& model) {
 }
 
 // Shade the given hit record with the lights
-glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights)
+glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces)
 {
     // Initialize the final color
     glm::vec3 color(0.0f);
@@ -399,6 +399,34 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
         }
     }
 
+    float reflection = hitRecord.material.getReflection();
+    float transparency = hitRecord.material.getTransparency();
+    float absorption = hitRecord.material.getAbsorption();
+
+    // Check if current material is reflective
+    if (reflection > 0.0f && bounces > 0) {
+        // Reflection direction
+        glm::vec3 r = glm::reflect(-v, n);
+
+        // Offset the origin 
+        glm::vec3 reflectionOrigin = glm::vec3(hitRecord.point) + 0.001f * r;
+        Ray reflectionRay(glm::vec4(reflectionOrigin, 1.0f), glm::vec4(r, 0.0f));
+
+        // Ray trace the reflection ray
+        sgraph::RaytracerRenderer* reflectionRenderer = new sgraph::RaytracerRenderer(raytraceModelview, reflectionRay);
+        sg->getRoot()->accept(reflectionRenderer);
+        HitRecord& reflectionHit = reflectionRenderer->getHitRecord();
+
+        if (reflectionHit.t < std::numeric_limits<float>::infinity()) {
+            glm::vec3 reflectionColor = shade(reflectionHit, glm::vec4(-r, 0.0f), lights, bounces -1);
+            color = absorption * color + reflection * reflectionColor;
+        } else {
+            color = absorption * color + reflection * glm::vec3(1.0f);
+        }
+
+        delete reflectionRenderer;
+    }
+
     return glm::clamp(color, 0.0f, 1.0f);
 }
 
@@ -409,7 +437,7 @@ void View::setCamera(TypeOfCamera mode, Model& model) {
     
     if (cameraMode == GLOBAL)
     {
-        cameraPosition = glm::vec3(0.0f, 0.0f, 200.0f);
+        cameraPosition = glm::vec3(200.0f, 0.0f, 0.0f);
         cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
     }
     else if (cameraMode == CHOPPER)

@@ -92,14 +92,10 @@ private:
     vector<LightLocation> lightLocations;
 
     // Raytracing
-    glm::vec4 getColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
-    glm::vec4 getAbsorptionColor(HitRecord hitRecord, vector<vector<util::Light>> &lights);
-    glm::vec4 getReflectionColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
-    glm::vec4 getTransparencyColor(HitRecord hitRecord, vector<vector<util::Light>> &lights, glm::vec4 rayDirection, int reflectiveBounces, int refractiveBounces);
     bool isInShadow(HitRecord hitRecord, vector<vector<util::Light>> &lights);
     stack<glm::mat4> raytraceModelview;
     sgraph::RaytracerRenderer *raytracerRenderer;
-    glm::vec3 shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights);
+    glm::vec3 shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces);
 
 };
 

@@ -100,8 +100,6 @@ namespace sgraph {
                         HitRecord updatedHitRecord(time, intersectionPoint, normal, leafNode->getMaterial());
                         hitRecord = updatedHitRecord;
                     }
-                } else {
-                    //cout << "NO HIT" << endl;
                 }
             }
 
