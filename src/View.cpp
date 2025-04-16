@@ -155,6 +155,7 @@ void View::initObjects(Model& model) {
             sgraph::LeafNode* leaf = dynamic_cast<sgraph::LeafNode*>(pair.second);
             if (leaf && leaf->getTextureName() == name) {
                 leaf->setTextureID(textureId);
+                leaf->setTextureObject(textureObject);
             }
         }
     }
@@ -350,6 +351,16 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
 
     if (hitRecord.material.getReflection() > 0.0f && bounces > 0) {
         color = applyReflection(hitRecord, n, v, color, lights, bounces);
+    }
+
+    if (hitRecord.textureImage) {
+        glm::vec4 texColor = hitRecord.textureImage->getColor(
+            hitRecord.textureCoordinates.x,
+            hitRecord.textureCoordinates.y
+        );
+        glm::vec3 texRGB = glm::vec3(texColor.r, texColor.g, texColor.b) / 255.0f;
+
+        color *= texRGB;
     }
 
     // TODO: get refraction

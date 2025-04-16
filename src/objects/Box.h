@@ -82,6 +82,44 @@ class Box : public AbstractRaytraceObject {
             return normal;
         }
 
+        glm::vec2 getTextureCoordinates(glm::vec4 intersectionPoint) {
+            float absX = abs(intersectionPoint.x);
+            float absY = abs(intersectionPoint.y);
+            float absZ = abs(intersectionPoint.z);
+            //front
+            if (absZ >= absY && absZ >= absX && intersectionPoint.z >= 0) {
+                return calcTextureCoordinates(intersectionPoint.x,intersectionPoint.y,glm::vec2(0.25f,0.25f));
+            }
+            //back
+            else if (absZ >= absY && absZ >= absX && intersectionPoint.z < 0) {
+                return calcTextureCoordinates(intersectionPoint.x,intersectionPoint.y,glm::vec2(0.75f,0.25f));
+            }
+            //left
+            else if (absX >= absY && absX >= absZ && intersectionPoint.x < 0) {
+                return calcTextureCoordinates(intersectionPoint.z,intersectionPoint.y,glm::vec2(0.0f,0.25f));
+            }
+            //right
+            else if (absX >= absY && absX >= absZ && intersectionPoint.x >= 0) {
+                return calcTextureCoordinates(intersectionPoint.z,intersectionPoint.y,glm::vec2(0.5f,0.25f));
+            }
+            //top
+            else if (absY >= absX && absY >= absZ && intersectionPoint.y >= 0) {
+                return calcTextureCoordinates(intersectionPoint.x,intersectionPoint.z,glm::vec2(0.25f,0.5f));
+            }
+            //bottom
+            else if (absY >= absX && absY >= absZ && intersectionPoint.y < 0) {
+                return calcTextureCoordinates(intersectionPoint.x,intersectionPoint.z,glm::vec2(0.25f,0.0f));
+            }
+            return glm::vec2(0.0f, 0.0f);
+            
+        }
+
+        glm::vec2 calcTextureCoordinates(float sCoord, float tCoord, glm::vec2 bottomLeftCoords) {
+            float s = ((sCoord - (-0.5)) * 0.25) + bottomLeftCoords.x;
+            float t = ((tCoord - (-0.5)) * 0.25) + bottomLeftCoords.y;
+            return glm::vec2(s,t);
+        }
+
     private:
         glm::vec3 vMin = glm::vec3(-0.5f, -0.5f, -0.5f);
         glm::vec3 vMax = glm::vec3(0.5f, 0.5f, 0.5f);

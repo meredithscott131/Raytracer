@@ -22,6 +22,10 @@
 #include "../objects/AbstractRaytraceObject.h"
 #include "../Ray.h"
 
+#include <cmath>
+#define M_PI 3.14159265358979323846
+
+
 using namespace std;
 
 namespace sgraph {
@@ -85,22 +89,27 @@ namespace sgraph {
 
                 if (hit) {
                     if (time < hitRecord.t) {
-                        // Calculate the intersection point and normal
-                        glm::vec4 intersectionPoint = transformedS + (time * transformedV);
-                        glm::vec4 normal;
-                        normal = raytraceObject->getNormal(intersectionPoint);
-
-                        // Transform the intersection point and normal back to world coordinates
-                        glm::mat4 mv = modelview.top();
-                        intersectionPoint = mv * intersectionPoint;
-                        glm::mat4 updatedMV = modelview.top();
-                        normal = updatedMV * normal;
+                        glm::vec4 localIntersection = transformedS + (time * transformedV);
+                        glm::vec4 normal = raytraceObject->getNormal(localIntersection);
+                
+                        glm::vec2 texCoords = getTextureCoordinates(leafNode->getInstanceOf(), localIntersection);
                         
-                        // Create a new HitRecord object with the updated values
-                        HitRecord updatedHitRecord(time, intersectionPoint, normal, leafNode->getMaterial());
+                        // Transform point and normal to world/view space
+                        glm::vec4 worldIntersection = modelview.top() * localIntersection;
+                        glm::vec4 worldNormal = modelview.top() * normal;
+                
+                        HitRecord updatedHitRecord(
+                            time,
+                            worldIntersection,
+                            worldNormal,
+                            leafNode->getMaterial()
+                        );
+                        updatedHitRecord.textureImage = leafNode->getTextureObject();
+                        updatedHitRecord.textureCoordinates = texCoords;
                         hitRecord = updatedHitRecord;
                     }
                 }
+                
             }
 
             /**
@@ -146,6 +155,21 @@ namespace sgraph {
             HitRecord& getHitRecord() {
                 return hitRecord;
             }
+
+            glm::vec2 getTextureCoordinates(const std::string& instanceOf, const glm::vec4& point) {
+                if (instanceOf == "sphere") {
+                    float theta = atan2(point.z, point.x);
+                    float phi = acos(glm::clamp(point.y, -1.0f, 1.0f));
+                    float u = 1.0f - (theta + M_PI) / (2 * M_PI);
+                    float v = phi / M_PI;
+                    return glm::vec2(u, v);
+                }
+                else if (instanceOf == "box") {
+                    return box.getTextureCoordinates(point);
+                }
+                return glm::vec2(0.0f, 0.0f); 
+            }
+            
 
         private:
             stack<glm::mat4>& modelview; // the modelview matrix stack

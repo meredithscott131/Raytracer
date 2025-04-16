@@ -3,6 +3,8 @@ instance box models/box.obj
 instance cone models/cone.obj
 instance cylinder models/cylinder.obj
 
+texture grass textures/grass.ppm
+
 # Matte red-green cone
 material mat-ball2
 emission 0 0 0
@@ -30,8 +32,9 @@ end-material
 group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 65 0 0 -1 end-lights
 
 # Sphere in front of mirror
-leaf l1 l1 instanceof sphere add-lights nolights end-lights
+leaf l1 l1 instanceof box add-lights nolights end-lights
 assign-material l1 mat-ball2
+assign-texture l1 grass
 translate t1 t1 0 0 -40 add-lights nolights end-lights
 scale s1 s1 40 40 40 add-lights nolights end-lights
 add-child t1 root
