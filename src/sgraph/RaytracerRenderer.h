@@ -158,11 +158,7 @@ namespace sgraph {
 
             glm::vec2 getTextureCoordinates(const std::string& instanceOf, const glm::vec4& point) {
                 if (instanceOf == "sphere") {
-                    float theta = atan2(point.z, point.x);
-                    float phi = acos(glm::clamp(point.y, -1.0f, 1.0f));
-                    float u = 1.0f - (theta + M_PI) / (2 * M_PI);
-                    float v = phi / M_PI;
-                    return glm::vec2(u, v);
+                    return sphere.getTextureCoordinates(point);
                 }
                 else if (instanceOf == "box") {
                     return box.getTextureCoordinates(point);

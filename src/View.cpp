@@ -319,7 +319,7 @@ void View::raytrace(Model& model) {
             // Check if the ray hit an object
             if (hitRecord.t < std::numeric_limits<float>::infinity()) {
                 // Hit, set pixel color based on shading
-                glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights, 5);
+                glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights, 5, 1.0f);
                 image[idx]     = shadedColor.r * 255;
                 image[idx + 1] = shadedColor.g * 255;
                 image[idx + 2] = shadedColor.b * 255;
@@ -340,7 +340,7 @@ void View::raytrace(Model& model) {
 }
 
 // Shade the given hit record, considering lighting and reflection
-glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces) {
+glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
     glm::vec3 color(0.0f);
     glm::vec3 n = glm::normalize(glm::vec3(hitRecord.normal));
     glm::vec3 v = glm::normalize(glm::vec3(viewDir));
@@ -363,10 +363,64 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
         color *= texRGB;
     }
 
-    // TODO: get refraction
+    //refraction
+    if (hitRecord.material.getTransparency() > 0.0f && bounces > 0) {
+        glm::vec3 refractedColor = applyRefraction(hitRecord, n, v, lights, bounces - 1, currentRefractiveIndex);
+        float absorption = hitRecord.material.getAbsorption();
+        float reflection = hitRecord.material.getReflection();
+        float transparency = hitRecord.material.getTransparency();
+        color = absorption * color + reflection * color + transparency * refractedColor;
+    }
 
     return glm::clamp(color, 0.0f, 1.0f);
 }
+
+//applying refraction onto the objects
+glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
+    float eta_i = currentRefractiveIndex;
+    float eta_t = hitRecord.material.getRefractiveIndex();
+    glm::vec3 normal = n;
+
+    float cos_i = glm::dot(-v, normal);
+
+    //a condition to check if we're leaving an object
+    if (cos_i < 0) {
+        cos_i = -cos_i;
+        std::swap(eta_i, eta_t);
+        normal = -normal;
+    }
+
+    float eta = eta_i / eta_t;
+    float sin2_t = eta * eta * (1.0f - cos_i * cos_i);
+
+    if (sin2_t > 1.0f) {
+        //internal reflection???
+        return glm::vec3(1.0f);
+    }
+
+    float cos_t = sqrt(1.0f - sin2_t);
+    glm::vec3 refractedDir = eta * v + (eta * cos_i - cos_t) * normal;
+
+    glm::vec3 offset = 0.001f * refractedDir;
+    glm::vec3 origin = hitRecord.point + offset;
+    Ray refractedRay(glm::vec4(origin, 1.0f), glm::vec4(refractedDir, 0.0f));
+
+
+    sgraph::RaytracerRenderer* refractionRenderer = new sgraph::RaytracerRenderer(raytraceModelview, refractedRay);
+    sg->getRoot()->accept(refractionRenderer);
+    HitRecord& refractionHit = refractionRenderer->getHitRecord();
+
+    glm::vec3 color;
+    if (refractionHit.t < std::numeric_limits<float>::infinity()) {
+        color = shade(refractionHit, glm::vec4(-refractedDir, 0.0f), lights, bounces, eta_t);
+    } else {
+        color = glm::vec3(1.0f);
+    }
+
+    delete refractionRenderer;
+    return color;
+}
+
 
 // Applies lighting to the given hit record
 glm::vec3 View::applyLighting(HitRecord& hitRecord, const util::Light& light, const glm::vec3& n, const glm::vec3& v) {

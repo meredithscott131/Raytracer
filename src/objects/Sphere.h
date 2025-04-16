@@ -3,6 +3,9 @@
 
 #include "AbstractRaytraceObject.h"
 
+#define M_PI 3.14159265358979323846
+
+
 // Sphere raytrace object
 class Sphere : public AbstractRaytraceObject {
     public:
@@ -41,6 +44,14 @@ class Sphere : public AbstractRaytraceObject {
         glm::vec4 getNormal(glm::vec4 intersectionPoint) override {
             glm::vec4 normal = glm::vec4(intersectionPoint.x, intersectionPoint.y, intersectionPoint.z, 0.0f);
             return normal;
+        }
+
+        glm::vec2 getTextureCoordinates(glm::vec4 intersectionPoint) {
+            float phi = asin(intersectionPoint.y);
+            float theta = atan2(-intersectionPoint.z, intersectionPoint.x); 
+            float s = theta / (2 * M_PI);
+            float t = (phi + (0.5 * M_PI)) / M_PI;
+            return glm::vec4(s,t,0,0);
         }
 
     private:
