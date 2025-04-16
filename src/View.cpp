@@ -338,96 +338,98 @@ void View::raytrace(Model& model) {
     delete[] image;
 }
 
-// Shade the given hit record with the lights
-glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces)
-{
-    // Initialize the final color
+// Shade the given hit record, considering lighting and reflection
+glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces) {
     glm::vec3 color(0.0f);
-
-    // Normalize the normal and view direction
     glm::vec3 n = glm::normalize(glm::vec3(hitRecord.normal));
     glm::vec3 v = glm::normalize(glm::vec3(viewDir));
 
-    // Get material properties
-    glm::vec3 ambient = hitRecord.material.getAmbient();
-    glm::vec3 diffuse = hitRecord.material.getDiffuse();
-    glm::vec3 specular = hitRecord.material.getSpecular();
-    float shininess = hitRecord.material.getShininess();
-
-    for (const auto& light : lights)
-    {
-        // Normalize the light direction
-        glm::vec3 l = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
-        glm::vec3 h = glm::normalize(l + v);
-
-        // Determing if the current point is in shadow
-
-        // applying offset to shadow ray to avoid precision errors
-        glm::vec3 offsetOrigin = glm::vec3(hitRecord.point) + 0.001f * n;
-        Ray shadowRay(glm::vec4(offsetOrigin, 1.0f), glm::vec4(l, 0.0f));
-
-        // ray trace the shadow ray
-        sgraph::RaytracerRenderer* shadowRenderer = new sgraph::RaytracerRenderer(raytraceModelview, shadowRay);
-        sg->getRoot()->accept(shadowRenderer);
-        HitRecord& shadowHitRecord = shadowRenderer->getHitRecord();
-
-        float distToLight = glm::length(glm::vec3(light.getPosition()) - offsetOrigin);
-
-        // If point is in light, apply lighting
-        if (shadowHitRecord.t >= distToLight) {
-            // Spotlight effect
-            float spotFactor = 1.0f;
-            if (light.getSpotCutoff() > 0) {
-                glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
-                glm::vec3 lightDir = glm::normalize(-l);  // reverse direction for comparison
-                float spotCos = glm::dot(spotDir, lightDir);
-                if (spotCos < light.getSpotCutoff()) {
-                    spotFactor = 0.0f;
-                }
-            }
-
-            // Calculate the diffuse and specular components
-            float diff = glm::max(glm::dot(n, l), 0.0f);
-            float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), shininess);
-
-            // Calculate the final color components
-            glm::vec3 ambientTerm = ambient * light.getAmbient();
-            glm::vec3 diffuseTerm = diffuse * light.getDiffuse() * diff;
-            glm::vec3 specularTerm = specular * light.getSpecular() * spec;
-
-            color += spotFactor * (ambientTerm + diffuseTerm + specularTerm);
-        }
+    for (const auto& light : lights) {
+        color += applyLighting(hitRecord, light, n, v);
     }
 
-    float reflection = hitRecord.material.getReflection();
-    float transparency = hitRecord.material.getTransparency();
-    float absorption = hitRecord.material.getAbsorption();
-
-    // Check if current material is reflective
-    if (reflection > 0.0f && bounces > 0) {
-        // Reflection direction
-        glm::vec3 r = glm::reflect(-v, n);
-
-        // Offset the origin 
-        glm::vec3 reflectionOrigin = glm::vec3(hitRecord.point) + 0.001f * r;
-        Ray reflectionRay(glm::vec4(reflectionOrigin, 1.0f), glm::vec4(r, 0.0f));
-
-        // Ray trace the reflection ray
-        sgraph::RaytracerRenderer* reflectionRenderer = new sgraph::RaytracerRenderer(raytraceModelview, reflectionRay);
-        sg->getRoot()->accept(reflectionRenderer);
-        HitRecord& reflectionHit = reflectionRenderer->getHitRecord();
-
-        if (reflectionHit.t < std::numeric_limits<float>::infinity()) {
-            glm::vec3 reflectionColor = shade(reflectionHit, glm::vec4(-r, 0.0f), lights, bounces -1);
-            color = absorption * color + reflection * reflectionColor;
-        } else {
-            color = absorption * color + reflection * glm::vec3(1.0f);
-        }
-
-        delete reflectionRenderer;
+    if (hitRecord.material.getReflection() > 0.0f && bounces > 0) {
+        color = applyReflection(hitRecord, n, v, color, lights, bounces);
     }
+
+    // TODO: get refraction
 
     return glm::clamp(color, 0.0f, 1.0f);
+}
+
+// Applies lighting to the given hit record
+glm::vec3 View::applyLighting(HitRecord& hitRecord, const util::Light& light, const glm::vec3& n, const glm::vec3& v) {
+    // Normalizing the light direction
+    glm::vec3 l = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
+    glm::vec3 h = glm::normalize(l + v);
+
+    // Applying offset to shadow ray to avoid precision errors
+    glm::vec3 offsetOrigin = glm::vec3(hitRecord.point) + 0.001f * n;
+
+    // Ray tracing the shadow ray
+    Ray shadowRay(glm::vec4(offsetOrigin, 1.0f), glm::vec4(l, 0.0f));
+    sgraph::RaytracerRenderer* shadowRenderer = new sgraph::RaytracerRenderer(raytraceModelview, shadowRay);
+    sg->getRoot()->accept(shadowRenderer);
+    HitRecord& shadowHit = shadowRenderer->getHitRecord();
+
+    float distToLight = glm::length(glm::vec3(light.getPosition()) - offsetOrigin);
+    glm::vec3 result(0.0f);
+
+    // If point is in light, apply lighting
+    if (shadowHit.t >= distToLight) {
+        float spotFactor = calculateSpotlight(light, l);
+        float diff = glm::max(glm::dot(n, l), 0.0f);
+        float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), hitRecord.material.getShininess());
+
+        // Calculate the final color components
+        glm::vec3 ambientTerm = glm::vec3(hitRecord.material.getAmbient()) * glm::vec3(light.getAmbient());
+        glm::vec3 diffuseTerm = glm::vec3(hitRecord.material.getDiffuse()) * glm::vec3(light.getDiffuse()) * diff;
+        glm::vec3 specularTerm = glm::vec3(hitRecord.material.getSpecular()) * glm::vec3(light.getSpecular()) * spec;
+
+        result = spotFactor * (ambientTerm + diffuseTerm + specularTerm);
+    }
+
+    delete shadowRenderer;
+    return result;
+}
+
+// Calculates the spotlight of the given the light and its direction
+float View::calculateSpotlight(const util::Light& light, const glm::vec3& l) {
+    if (light.getSpotCutoff() <= 0) return 1.0f;
+
+    glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
+    glm::vec3 lightDir = glm::normalize(-l);
+    float spotCos = glm::dot(spotDir, lightDir);
+
+    return (spotCos < light.getSpotCutoff()) ? 0.0f : 1.0f;
+}
+
+// Applies reflection to the given hit record
+glm::vec3 View::applyReflection(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v, const glm::vec3& baseColor, const std::vector<util::Light>& lights, int bounces) {
+    float reflection = hitRecord.material.getReflection();
+    float absorption = hitRecord.material.getAbsorption();
+
+    // Reflection direction
+    glm::vec3 r = glm::reflect(-v, n);
+    // Offset the origin
+    glm::vec3 reflectionOrigin = glm::vec3(hitRecord.point) + 0.001f * r;
+
+    // Ray tracing the reflection ray
+    Ray reflectionRay(glm::vec4(reflectionOrigin, 1.0f), glm::vec4(r, 0.0f));
+    sgraph::RaytracerRenderer* reflectionRenderer = new sgraph::RaytracerRenderer(raytraceModelview, reflectionRay);
+    sg->getRoot()->accept(reflectionRenderer);
+    HitRecord& reflectionHit = reflectionRenderer->getHitRecord();
+
+    glm::vec3 color;
+    if (reflectionHit.t < std::numeric_limits<float>::infinity()) {
+        glm::vec3 reflectionColor = shade(reflectionHit, glm::vec4(-r, 0.0f), lights, bounces - 1);
+        color = absorption * baseColor + reflection * reflectionColor;
+    } else {
+        color = absorption * baseColor + reflection * glm::vec3(1.0f);
+    }
+
+    delete reflectionRenderer;
+    return color;
 }
 
 // Set the camera position given the current camera mode
