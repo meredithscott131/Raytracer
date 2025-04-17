@@ -419,18 +419,18 @@ glm::vec3 View::applyLighting(HitRecord& hitRecord, const util::Light& light, co
         result = spotFactor * (ambientTerm + diffuseTerm + specularTerm);
     } else {
         glm::vec3 shadowColor(0.2f, 0.2f, 0.3f);  // blue shadow tint
-        float shadowStrength = 0.6f;              // opacity
+        float strength = 0.6f;                    // opacity
 
-        glm::vec3 baseColor = glm::vec3(hitRecord.material.getAmbient());
-        result = baseColor * shadowColor * shadowStrength +
-                 baseColor * (1.0f - shadowStrength);
+        glm::vec3 base = glm::vec3(hitRecord.material.getAmbient());
+        result = base * shadowColor * strength +
+                 base * (1.0f - strength);
     }
 
     delete shadowRenderer;
     return result;
 }
 
-// Calculates the spotlight of the given the light and its direction
+// Calculates the spotlight factor of the given the light and its direction
 float View::calculateSpotlight(const util::Light& light, const glm::vec3& l) {
     if (light.getSpotCutoff() <= 0) return 1.0f;
 

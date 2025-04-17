@@ -13,6 +13,7 @@ Thomas Yi and Meredith Scott
     - This scene uses spheres, boxes, cones, and cylinders
     - Contains lighting with shadows
     - Contains reflective red spheres
+    - Contains textures on sky, leaves, and ground
     - spotlight can be seen working as part of the screen (front of the scene) is off the radius of the light, rendering it black.
 - OpenGL rendering of the same scene with the same camera position is found at src/images/Final Scene OpenGL Rendering.png
 - scene file used to create this scene is found at src/scenegraphmodels/final-raytrace.txt
