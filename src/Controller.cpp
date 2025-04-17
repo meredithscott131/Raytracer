@@ -27,7 +27,7 @@ Controller::Controller(Model& m,View& v) {
 void Controller::initScenegraph() {
     //loading the scenegraph from the file
     cout << "Loading scenegraph from file" << endl;
-    ifstream inFile("scenegraphmodels/test.txt");
+    ifstream inFile("scenegraphmodels/test-refraction.txt");
 
     sgraph::ScenegraphImporter importer;
     IScenegraph *scenegraph = importer.parse(inFile);

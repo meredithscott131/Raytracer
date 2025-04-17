@@ -369,8 +369,15 @@ glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std:
         float absorption = hitRecord.material.getAbsorption();
         float reflection = hitRecord.material.getReflection();
         float transparency = hitRecord.material.getTransparency();
-        color = absorption * color + reflection * color + transparency * refractedColor;
-    }
+        float total = absorption + reflection + transparency;
+
+        //trying to figure out the blend to make refraction appear...
+        if (total > 0.0f) {
+            color = (absorption * color + reflection * color + transparency * refractedColor) / total;
+        } else {
+            color = refractedColor;
+        }
+            }
 
     return glm::clamp(color, 0.0f, 1.0f);
 }
@@ -380,10 +387,8 @@ glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const 
     float eta_i = currentRefractiveIndex;
     float eta_t = hitRecord.material.getRefractiveIndex();
     glm::vec3 normal = n;
-
     float cos_i = glm::dot(-v, normal);
 
-    //a condition to check if we're leaving an object
     if (cos_i < 0) {
         cos_i = -cos_i;
         std::swap(eta_i, eta_t);
@@ -394,30 +399,61 @@ glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const 
     float sin2_t = eta * eta * (1.0f - cos_i * cos_i);
 
     if (sin2_t > 1.0f) {
-        //internal reflection???
         return glm::vec3(1.0f);
     }
 
     float cos_t = sqrt(1.0f - sin2_t);
     glm::vec3 refractedDir = eta * v + (eta * cos_i - cos_t) * normal;
+    refractedDir = glm::normalize(refractedDir);
+    glm::vec3 entryOffset = 0.001f * refractedDir;
+    glm::vec3 entryOrigin = glm::vec3(hitRecord.point) + entryOffset;
 
-    glm::vec3 offset = 0.001f * refractedDir;
-    glm::vec3 origin = hitRecord.point + offset;
-    Ray refractedRay(glm::vec4(origin, 1.0f), glm::vec4(refractedDir, 0.0f));
-
-
-    sgraph::RaytracerRenderer* refractionRenderer = new sgraph::RaytracerRenderer(raytraceModelview, refractedRay);
-    sg->getRoot()->accept(refractionRenderer);
-    HitRecord& refractionHit = refractionRenderer->getHitRecord();
+    Ray entryRay(glm::vec4(entryOrigin, 1.0f), glm::vec4(refractedDir, 0.0f));
+    sgraph::RaytracerRenderer* firstRenderer = new sgraph::RaytracerRenderer(raytraceModelview, entryRay);
+    sg->getRoot()->accept(firstRenderer);
+    HitRecord& exitHit = firstRenderer->getHitRecord();
 
     glm::vec3 color;
-    if (refractionHit.t < std::numeric_limits<float>::infinity()) {
-        color = shade(refractionHit, glm::vec4(-refractedDir, 0.0f), lights, bounces, eta_t);
+    if (exitHit.t < std::numeric_limits<float>::infinity()) {
+        glm::vec3 n2 = glm::normalize(glm::vec3(exitHit.normal));
+        glm::vec3 incident = -refractedDir;
+        float eta_exit = eta_t / eta_i;
+        float cos_i2 = glm::dot(-incident, n2);
+
+        if (cos_i2 < 0) {
+            cos_i2 = -cos_i2;
+            n2 = -n2;
+        }
+
+        float sin2_t2 = eta_exit * eta_exit * (1.0f - cos_i2 * cos_i2);
+
+        if (sin2_t2 > 1.0f) {
+            delete firstRenderer;
+            return glm::vec3(1.0f);
+        }
+
+        float cos_t2 = sqrt(1.0f - sin2_t2);
+        glm::vec3 refractedDir2 = eta_exit * incident + (eta_exit * cos_i2 - cos_t2) * n2;
+        refractedDir2 = glm::normalize(refractedDir2);
+        glm::vec3 exitOffset = 0.001f * refractedDir2;
+        glm::vec3 exitOrigin = glm::vec3(exitHit.point) + exitOffset;
+
+        Ray exitRay(glm::vec4(exitOrigin, 1.0f), glm::vec4(refractedDir2, 0.0f));
+        sgraph::RaytracerRenderer* secondRenderer = new sgraph::RaytracerRenderer(raytraceModelview, exitRay);
+        sg->getRoot()->accept(secondRenderer);
+        HitRecord& finalHit = secondRenderer->getHitRecord();
+
+        if (finalHit.t < std::numeric_limits<float>::infinity()) {
+            color = shade(finalHit, glm::vec4(-refractedDir2, 0.0f), lights, bounces, eta_i);
+        } else {
+            color = glm::vec3(1.0f);
+        }
+        delete secondRenderer;
     } else {
         color = glm::vec3(1.0f);
     }
 
-    delete refractionRenderer;
+    delete firstRenderer;
     return color;
 }
 
