@@ -1,4 +1,4 @@
-# Assignment 6: Ray Tracing
+# Assignment 7: Ray Tracing (Continued)
 
 ### Team
 Thomas Yi and Meredith Scott
