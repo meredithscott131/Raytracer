@@ -3,38 +3,49 @@ instance box models/box.obj
 instance cone models/cone.obj
 instance cylinder models/cylinder.obj
 
-material mat-ball 
-emission 0 0 0
-ambient 0.8 0.2 0.2
-diffuse 0.6 0.6 0.6
-specular 0.5 0.5 0.5
-shininess 5
-end-material
+texture grass textures/grass.ppm
 
+# Matte red-green cone
 material mat-ball2
 emission 0 0 0
 ambient 0.2 0.6 0.2
 diffuse 0.6 0.6 0.6
 specular 0.5 0.5 0.5
 shininess 5
+reflection 0.0
+transparency 0.0
+absorption 1.0
+end-material
+
+# Reflective silver cylinder
+material mat-mirror
+emission 0 0 0
+ambient 0.3 0.3 0.3
+diffuse 0.0 0.0 0.0
+specular 1.0 1.0 1.0
+shininess 100
+reflection 1.0
+transparency 0.0
+absorption 0.0
 end-material
 
 group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 65 0 0 -1 end-lights
 
-leaf l1 l1 instanceof cone add-lights nolights end-lights
+# Sphere in front of mirror
+leaf l1 l1 instanceof box add-lights nolights end-lights
 assign-material l1 mat-ball2
-translate t1 t1 0 0 0 add-lights nolights end-lights
-scale s1 s1 60 60 60 add-lights nolights end-lights
+assign-texture l1 grass
+translate t1 t1 0 0 -40 add-lights nolights end-lights
+scale s1 s1 40 40 40 add-lights nolights end-lights
 add-child t1 root
 add-child s1 t1
 add-child l1 s1
 
-
-
-leaf l2 l2 instanceof cylinder add-lights nolights end-lights
-assign-material l2 mat-ball
-translate t2 t2 0 -30 -30 add-lights nolights end-lights
-scale s2 s2 60 60 60 add-lights nolights end-lights
+# Reflective sphere behind the mat sphere
+leaf l2 l2 instanceof sphere add-lights nolights end-lights
+assign-material l2 mat-mirror
+translate t2 t2 0 0 40 add-lights nolights end-lights
+scale s2 s2 40 40 40 add-lights nolights end-lights
 add-child t2 root
 add-child s2 t2
 add-child l2 s2

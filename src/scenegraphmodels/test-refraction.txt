@@ -1,0 +1,63 @@
+instance sphere models/sphere.obj
+instance box models/box.obj
+instance cone models/cone.obj
+instance cylinder models/cylinder.obj
+
+texture checkerboard textures/checkerboard.ppm
+texture grass textures/grass.ppm
+
+# Glossy refractive glass material
+material mat-glass
+emission 0 0 0
+ambient 0.1 0.1 0.1
+diffuse 0.2 0.2 0.2
+specular 1.0 1.0 1.0
+shininess 100
+reflection 0.1
+transparency 0.9
+absorption 0.1
+refraction 1.5
+end-material
+
+# Matte red cone behind the glass sphere
+material mat-red
+emission 0 0 0
+ambient 0.6 0.1 0.1
+diffuse 0.6 0.6 0.6
+specular 0.2 0.2 0.2
+shininess 5
+reflection 0.0
+transparency 0.0
+absorption 1.0
+end-material
+
+group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 65 0 0 -1 end-lights
+
+# Refractive sphere
+leaf glassSphere glassSphere instanceof sphere add-lights nolights end-lights
+assign-material glassSphere mat-glass
+translate t-glass t-glass -50 0 -30 add-lights nolights end-lights
+scale s-glass s-glass 40 40 40 add-lights nolights end-lights
+add-child t-glass root
+add-child s-glass t-glass
+add-child glassSphere s-glass
+
+# Red cone behind glass
+leaf redCone redCone instanceof cone add-lights nolights end-lights
+assign-material redCone mat-red
+translate t-red t-red -50 0 -80 add-lights nolights end-lights
+scale s-red s-red 30 60 30 add-lights nolights end-lights
+add-child t-red root
+add-child s-red t-red
+add-child redCone s-red
+
+leaf bg bg instanceof box add-lights nolights end-lights
+assign-material bg mat-red
+assign-texture bg checkerboard
+translate t-bg t-bg -200 0 0 add-lights nolights end-lights
+scale s-bg s-bg  1 200 200 add-lights nolights end-lights
+add-child t-bg root
+add-child s-bg t-bg
+add-child bg s-bg
+
+assign-root root

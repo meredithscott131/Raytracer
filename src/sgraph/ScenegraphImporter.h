@@ -224,6 +224,15 @@ namespace sgraph {
                         else if (command == "shininess") {
                             input >> r;
                             mat.setShininess(r);
+                        } else if (command == "reflection") {
+                            input >> r;
+                            mat.setReflection(r);
+                        } else if (command == "transparency") {
+                            input >> r;
+                            mat.setTransparency(r);
+                        } else if (command == "absorption") {
+                            input >> r;
+                            mat.setAbsorption(r);
                         }
                         input >> command;
                     }

@@ -3,6 +3,10 @@ instance box models/box.obj
 instance cylinder models/cylinder.obj
 instance cone models/cone.obj
 
+texture checkerboard textures/checkerboard.ppm
+texture grass textures/grass.ppm
+texture sky textures/sky.ppm
+
 material mat-trunk
 emission 0 0 0
 ambient 0.4 0.2 0.1
@@ -21,8 +25,8 @@ end-material
 
 material mat-ground
 emission 0 0 0
-ambient 0.2 0.2 0.2
-diffuse 0.3 0.3 0.3
+ambient 0.4 0.5 0.0
+diffuse 0.3 0.8 0.1
 specular 0.0 0.0 0.0
 shininess 1
 end-material
@@ -30,9 +34,11 @@ end-material
 material mat-fruit
 emission 0 0 0
 ambient 0.8 0.1 0.1
-diffuse 0.9 0.2 0.2
-specular 0.3 0.3 0.3
-shininess 30
+diffuse 0.5 0.1 0.1
+specular 0.7 0.7 0.7
+shininess 100
+reflection 0.4
+absorption 0.6
 end-material
 
 material mat-blanket
@@ -51,14 +57,23 @@ specular 0.1 0.1 0.1
 shininess 10
 end-material
 
+material mat-sky
+emission 1.0 1.0 1.0
+ambient 1.0 1.0 1.0
+diffuse 1.0 1.0 1.0
+specular 0.0 0.0 0.0
+shininess 1
+end-material
+
 
 group root root add-lights spotlight 1 1 1 0.0 0.0 0.0 0.0 0.0 0.0 100 100 100 85 0 0 -1 end-lights
 
 #the ground
 leaf ground ground instanceof box add-lights nolights end-lights
 assign-material ground mat-ground
-translate tground tground 0 -50 0 add-lights nolights end-lights
-scale sground sground 300 2 300 add-lights nolights end-lights
+assign-texture ground grass
+translate tground tground 0 -50 100 add-lights nolights end-lights
+scale sground sground 500 2 400 add-lights nolights end-lights
 add-child tground root
 add-child sground tground
 add-child ground sground
@@ -75,6 +90,7 @@ add-child trunk strunk
 #VERY BIG LEAVES  :D
 leaf leaf1 leaf1 instanceof sphere add-lights nolights end-lights
 assign-material leaf1 mat-leaf
+assign-texture leaf1 grass
 translate tleaf1 tleaf1 0 38 0 add-lights nolights end-lights
 scale sleaf1 sleaf1 40 40 40 add-lights nolights end-lights
 add-child tleaf1 root
@@ -83,6 +99,7 @@ add-child leaf1 sleaf1
 
 leaf leaf2 leaf2 instanceof sphere add-lights nolights end-lights
 assign-material leaf2 mat-leaf
+assign-texture leaf2 grass
 translate tleaf2 tleaf2 25 50 0 add-lights nolights end-lights
 scale sleaf2 sleaf2 30 30 30 add-lights nolights end-lights
 add-child tleaf2 root
@@ -91,6 +108,7 @@ add-child leaf2 sleaf2
 
 leaf leaf3 leaf3 instanceof sphere add-lights nolights end-lights
 assign-material leaf3 mat-leaf
+assign-texture leaf3 grass
 translate tleaf3 tleaf3 -25 40 0 add-lights nolights end-lights
 scale sleaf3 sleaf3 30 30 30 add-lights nolights end-lights
 add-child tleaf3 root
@@ -99,6 +117,7 @@ add-child leaf3 sleaf3
 
 leaf leaf4 leaf4 instanceof sphere add-lights nolights end-lights
 assign-material leaf4 mat-leaf
+assign-texture leaf4 grass
 translate tleaf4 tleaf4 0 60 -20 add-lights nolights end-lights
 scale sleaf4 sleaf4 20 20 20 add-lights nolights end-lights
 add-child tleaf4 root
@@ -211,6 +230,7 @@ add-child trunkpine1 strunkpine1
 
 leaf pine1 pine1 instanceof cone add-lights nolights end-lights
 assign-material pine1 mat-leaf
+assign-texture pine1 grass
 translate tpine1 tpine1 -50 -38 20 add-lights nolights end-lights
 scale spine1 spine1 16 30 16 add-lights nolights end-lights
 add-child tpine1 root
@@ -219,6 +239,7 @@ add-child pine1 spine1
 
 leaf pine1a pine1a instanceof cone add-lights nolights end-lights
 assign-material pine1a mat-leaf
+assign-texture pine1a grass
 translate tpine1a tpine1a -50 -18 20 add-lights nolights end-lights
 scale spine1a spine1a 12 30 12 add-lights nolights end-lights
 add-child tpine1a root
@@ -236,6 +257,7 @@ add-child trunkpine2 strunkpine2
 
 leaf pine2 pine2 instanceof cone add-lights nolights end-lights
 assign-material pine2 mat-leaf
+assign-texture pine2 grass
 translate tpine2 tpine2 65 -40 -25 add-lights nolights end-lights
 scale spine2 spine2 14 25 14 add-lights nolights end-lights
 add-child tpine2 root
@@ -244,11 +266,21 @@ add-child pine2 spine2
 
 leaf pine2a pine2a instanceof cone add-lights nolights end-lights
 assign-material pine2a mat-leaf
+assign-texture pine2a grass
 translate tpine2a tpine2a 65 -20 -25 add-lights nolights end-lights
 scale spine2a spine2a 10 25 10 add-lights nolights end-lights
 add-child tpine2a root
 add-child spine2a tpine2a
 add-child pine2a spine2a
+
+leaf skydome skydome instanceof sphere add-lights nolights end-lights
+assign-material skydome mat-sky
+assign-texture skydome sky
+translate tsky tsky 0 0 0 add-lights nolights end-lights
+scale ssky ssky 1000 1000 1000 add-lights nolights end-lights
+add-child tsky root
+add-child ssky tsky
+add-child skydome ssky
 
 
 assign-root root

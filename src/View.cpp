@@ -155,6 +155,7 @@ void View::initObjects(Model& model) {
             sgraph::LeafNode* leaf = dynamic_cast<sgraph::LeafNode*>(pair.second);
             if (leaf && leaf->getTextureName() == name) {
                 leaf->setTextureID(textureId);
+                leaf->setTextureObject(textureObject);
             }
         }
     }
@@ -318,7 +319,7 @@ void View::raytrace(Model& model) {
             // Check if the ray hit an object
             if (hitRecord.t < std::numeric_limits<float>::infinity()) {
                 // Hit, set pixel color based on shading
-                glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights);
+                glm::vec3 shadedColor = shade(hitRecord, glm::vec4(viewDir, 0.0f), raytraceLights, 5, 1.0f);
                 image[idx]     = shadedColor.r * 255;
                 image[idx + 1] = shadedColor.g * 255;
                 image[idx + 2] = shadedColor.b * 255;
@@ -338,52 +339,209 @@ void View::raytrace(Model& model) {
     delete[] image;
 }
 
-// Shade the given hit record with the lights
-glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights)
-{
-    // Initialize the final color
+// Shade the given hit record, considering lighting and reflection
+glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
     glm::vec3 color(0.0f);
-
-    // Normalize the normal and view direction
     glm::vec3 n = glm::normalize(glm::vec3(hitRecord.normal));
     glm::vec3 v = glm::normalize(glm::vec3(viewDir));
 
-    // Get material properties
-    glm::vec3 ambient = hitRecord.material.getAmbient();
-    glm::vec3 diffuse = hitRecord.material.getDiffuse();
-    glm::vec3 specular = hitRecord.material.getSpecular();
-    float shininess = hitRecord.material.getShininess();
-
-    for (const auto& light : lights)
-    {
-        // Normalize the light direction
-        glm::vec3 l = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
-        glm::vec3 h = glm::normalize(l + v);
-
-        // Spotlight effect
-        float spotFactor = 1.0f;
-        if (light.getSpotCutoff() > 0) {
-            glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
-            glm::vec3 lightDir = glm::normalize(-l);  // reverse direction for comparison
-            float spotCos = glm::dot(spotDir, lightDir);
-            if (spotCos < light.getSpotCutoff()) {
-                spotFactor = 0.0f;
-            }
-        }
-
-        // Calculate the diffuse and specular components
-        float diff = glm::max(glm::dot(n, l), 0.0f);
-        float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), shininess);
-
-        // Calculate the final color components
-        glm::vec3 ambientTerm = ambient * light.getAmbient();
-        glm::vec3 diffuseTerm = diffuse * light.getDiffuse() * diff;
-        glm::vec3 specularTerm = specular * light.getSpecular() * spec;
-
-        color += spotFactor * (ambientTerm + diffuseTerm + specularTerm);
+    // Applying each light to the current pixel
+    for (const auto& light : lights) {
+        color += applyLighting(hitRecord, light, n, v);
     }
 
+    // If hit is reflective material, apply reflection to the current pixel
+    if (hitRecord.material.getReflection() > 0.0f && bounces > 0) {
+        color = applyReflection(hitRecord, n, v, color, lights, bounces);
+    }
+
+    // If hit has texture, apply it to the current pixel
+    if (hitRecord.textureImage) {
+        glm::vec4 texColor = hitRecord.textureImage->getColor(
+            hitRecord.textureCoordinates.x,
+            hitRecord.textureCoordinates.y
+        );
+        glm::vec3 texRGB = glm::vec3(texColor.r, texColor.g, texColor.b) / 255.0f;
+
+        color *= texRGB;
+    }
+
+    //refraction
+    /*
+    if (hitRecord.material.getTransparency() > 0.0f && bounces > 0) {
+        glm::vec3 refractedColor = applyRefraction(hitRecord, n, v, lights, bounces - 1, currentRefractiveIndex);
+        float absorption = hitRecord.material.getAbsorption();
+        float reflection = hitRecord.material.getReflection();
+        float transparency = hitRecord.material.getTransparency();
+        float total = absorption + reflection + transparency;
+
+        //trying to figure out the blend to make refraction appear...
+        if (total > 0.0f) {
+            color = (absorption * color + reflection * color + transparency * refractedColor) / total;
+        } else {
+            color = refractedColor;
+        }
+            }
+    */
+
     return glm::clamp(color, 0.0f, 1.0f);
+}
+
+// Applies lighting to the given hit record
+glm::vec3 View::applyLighting(HitRecord& hitRecord, const util::Light& light, const glm::vec3& n, const glm::vec3& v) {
+    // Normalizing the light direction
+    glm::vec3 l = glm::normalize(glm::vec3(light.getPosition()) - glm::vec3(hitRecord.point));
+    glm::vec3 h = glm::normalize(l + v);
+
+    // Applying offset to shadow ray to avoid precision errors
+    glm::vec3 offsetOrigin = glm::vec3(hitRecord.point) + 0.001f * n;
+
+    // Ray tracing the shadow ray
+    Ray shadowRay(glm::vec4(offsetOrigin, 1.0f), glm::vec4(l, 0.0f));
+    sgraph::RaytracerRenderer* shadowRenderer = new sgraph::RaytracerRenderer(raytraceModelview, shadowRay);
+    sg->getRoot()->accept(shadowRenderer);
+    HitRecord& shadowHit = shadowRenderer->getHitRecord();
+
+    float distToLight = glm::length(glm::vec3(light.getPosition()) - offsetOrigin);
+    glm::vec3 result(0.0f);
+
+    // If point is in light, apply lighting
+    if (shadowHit.t >= distToLight) {
+        float spotFactor = calculateSpotlight(light, l);
+        float diff = glm::max(glm::dot(n, l), 0.0f);
+        float spec = glm::pow(glm::max(glm::dot(n, h), 0.0f), hitRecord.material.getShininess());
+
+        // Calculate the final color components
+        glm::vec3 ambientTerm = glm::vec3(hitRecord.material.getAmbient()) * glm::vec3(light.getAmbient());
+        glm::vec3 diffuseTerm = glm::vec3(hitRecord.material.getDiffuse()) * glm::vec3(light.getDiffuse()) * diff;
+        glm::vec3 specularTerm = glm::vec3(hitRecord.material.getSpecular()) * glm::vec3(light.getSpecular()) * spec;
+
+        result = spotFactor * (ambientTerm + diffuseTerm + specularTerm);
+    } else {
+        glm::vec3 shadowColor(0.2f, 0.2f, 0.3f);  // blue shadow tint
+        float strength = 0.6f;                    // opacity
+
+        glm::vec3 base = glm::vec3(hitRecord.material.getAmbient());
+        result = base * shadowColor * strength +
+                 base * (1.0f - strength);
+    }
+
+    delete shadowRenderer;
+    return result;
+}
+
+// Calculates the spotlight factor of the given the light and its direction
+float View::calculateSpotlight(const util::Light& light, const glm::vec3& l) {
+    if (light.getSpotCutoff() <= 0) return 1.0f;
+
+    glm::vec3 spotDir = glm::normalize(glm::vec3(light.getSpotDirection()));
+    glm::vec3 lightDir = glm::normalize(-l);
+    float spotCos = glm::dot(spotDir, lightDir);
+
+    return (spotCos < light.getSpotCutoff()) ? 0.0f : 1.0f;
+}
+
+// Applies reflection to the given hit record
+glm::vec3 View::applyReflection(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v, const glm::vec3& baseColor, const std::vector<util::Light>& lights, int bounces) {
+    float reflection = hitRecord.material.getReflection();
+    float absorption = hitRecord.material.getAbsorption();
+
+    // Reflection direction
+    glm::vec3 r = glm::reflect(-v, n);
+    // Offset the origin
+    glm::vec3 reflectionOrigin = glm::vec3(hitRecord.point) + 0.001f * r;
+
+    // Ray tracing the reflection ray
+    Ray reflectionRay(glm::vec4(reflectionOrigin, 1.0f), glm::vec4(r, 0.0f));
+    sgraph::RaytracerRenderer* reflectionRenderer = new sgraph::RaytracerRenderer(raytraceModelview, reflectionRay);
+    sg->getRoot()->accept(reflectionRenderer);
+    HitRecord& reflectionHit = reflectionRenderer->getHitRecord();
+
+    glm::vec3 color;
+    if (reflectionHit.t < std::numeric_limits<float>::infinity()) {
+        glm::vec3 reflectionColor = shade(reflectionHit, glm::vec4(-r, 0.0f), lights, bounces - 1);
+        color = absorption * baseColor + reflection * reflectionColor;
+    } else {
+        color = absorption * baseColor + reflection * glm::vec3(1.0f);
+    }
+
+    delete reflectionRenderer;
+    return color;
+}
+
+// Applies refraction onto the objects
+glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
+    float eta_i = currentRefractiveIndex;
+    float eta_t = hitRecord.material.getRefractiveIndex();
+    glm::vec3 normal = n;
+    float cos_i = glm::dot(-v, normal);
+
+    if (cos_i < 0) {
+        cos_i = -cos_i;
+        std::swap(eta_i, eta_t);
+        normal = -normal;
+    }
+
+    float eta = eta_i / eta_t;
+    float sin2_t = eta * eta * (1.0f - cos_i * cos_i);
+
+    if (sin2_t > 1.0f) {
+        return glm::vec3(1.0f);
+    }
+
+    float cos_t = sqrt(1.0f - sin2_t);
+    glm::vec3 refractedDir = eta * v + (eta * cos_i - cos_t) * normal;
+    refractedDir = glm::normalize(refractedDir);
+    glm::vec3 entryOffset = 0.001f * refractedDir;
+    glm::vec3 entryOrigin = glm::vec3(hitRecord.point) + entryOffset;
+
+    Ray entryRay(glm::vec4(entryOrigin, 1.0f), glm::vec4(refractedDir, 0.0f));
+    sgraph::RaytracerRenderer* firstRenderer = new sgraph::RaytracerRenderer(raytraceModelview, entryRay);
+    sg->getRoot()->accept(firstRenderer);
+    HitRecord& exitHit = firstRenderer->getHitRecord();
+
+    glm::vec3 color;
+    if (exitHit.t < std::numeric_limits<float>::infinity()) {
+        glm::vec3 n2 = glm::normalize(glm::vec3(exitHit.normal));
+        glm::vec3 incident = -refractedDir;
+        float eta_exit = eta_t / eta_i;
+        float cos_i2 = glm::dot(-incident, n2);
+
+        if (cos_i2 < 0) {
+            cos_i2 = -cos_i2;
+            n2 = -n2;
+        }
+
+        float sin2_t2 = eta_exit * eta_exit * (1.0f - cos_i2 * cos_i2);
+
+        if (sin2_t2 > 1.0f) {
+            delete firstRenderer;
+            return glm::vec3(1.0f);
+        }
+
+        float cos_t2 = sqrt(1.0f - sin2_t2);
+        glm::vec3 refractedDir2 = eta_exit * incident + (eta_exit * cos_i2 - cos_t2) * n2;
+        refractedDir2 = glm::normalize(refractedDir2);
+        glm::vec3 exitOffset = 0.001f * refractedDir2;
+        glm::vec3 exitOrigin = glm::vec3(exitHit.point) + exitOffset;
+
+        Ray exitRay(glm::vec4(exitOrigin, 1.0f), glm::vec4(refractedDir2, 0.0f));
+        sgraph::RaytracerRenderer* secondRenderer = new sgraph::RaytracerRenderer(raytraceModelview, exitRay);
+        sg->getRoot()->accept(secondRenderer);
+        HitRecord& finalHit = secondRenderer->getHitRecord();
+
+        if (finalHit.t < std::numeric_limits<float>::infinity()) {
+            color = shade(finalHit, glm::vec4(-refractedDir2, 0.0f), lights, bounces, eta_i);
+        } else {
+            color = glm::vec3(1.0f);
+        }
+        delete secondRenderer;
+    } else {
+        color = glm::vec3(1.0f);
+    }
+
+    delete firstRenderer;
+    return color;
 }
 
 // Set the camera position given the current camera mode

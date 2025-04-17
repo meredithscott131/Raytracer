@@ -36,6 +36,9 @@ protected:
 
     unsigned int textureID = 0;
 
+    util::TextureImage* textureImage = nullptr;
+
+
 
 public:
     LeafNode(const string& instanceOf,util::Material& material,const string& name,sgraph::IScenegraph *graph,vector<util::Light>& lights)
@@ -108,6 +111,16 @@ public:
 
     void setTextureID(unsigned int id) { textureID = id; }
     unsigned int getTextureID() const { return textureID; }
+
+    //raytracing textures:
+
+    void setTextureObject(util::TextureImage* image) {
+        textureImage = image;
+    }
+    
+    util::TextureImage* getTextureObject() const {
+        return textureImage;
+    }
 
 };
 }
