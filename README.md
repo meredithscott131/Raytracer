@@ -29,7 +29,7 @@ Thomas Yi and Meredith Scott
 ## Meredith's Contributions
 - 1.1 Shadows
 - 1.2 Reflections
-- Scene configuration
+- 2.3 Scene configuration
 
 ## Textures Used
 - Sky - https://www.turbosquid.com/3d-models/3d-model-toonstyle-skydomeskybox-1098294
