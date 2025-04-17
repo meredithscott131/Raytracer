@@ -24,7 +24,7 @@ Thomas Yi and Meredith Scott
 
 ## Thomas's Contributions
 - 2.1 Texture Mapping
-- 2.2 Refractions
+- 2.2 Refractions (Not working, but code for refractions and Snell's law can be found in View::applyRefraction and View::shade() in View.cpp)
 
 ## Meredith's Contributions
 - 1.1 Shadows
