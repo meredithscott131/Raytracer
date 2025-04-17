@@ -93,7 +93,6 @@ private:
     
 
     // Raytracing
-    bool isInShadow(HitRecord hitRecord, vector<vector<util::Light>> &lights);
     stack<glm::mat4> raytraceModelview;
     sgraph::RaytracerRenderer *raytracerRenderer;
     glm::vec3 shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex = 1.0f);
@@ -101,11 +100,11 @@ private:
     float calculateSpotlight(const util::Light &light, const glm::vec3 &l);
     glm::vec3 applyReflection(HitRecord &hitRecord, const glm::vec3 &n, const glm::vec3 &v, const glm::vec3 &baseColor, const std::vector<util::Light> &lights, int bounces);
     glm::vec3 applyRefraction(HitRecord& hitRecord,
-        const glm::vec3& n,
-        const glm::vec3& v,
-        const std::vector<util::Light>& lights,
-        int bounces,
-        float currentRefractiveIndex);
+    const glm::vec3& n,
+    const glm::vec3& v,
+    const std::vector<util::Light>& lights,
+    int bounces,
+    float currentRefractiveIndex);
 
 };
 
