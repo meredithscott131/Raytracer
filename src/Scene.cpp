@@ -1,5 +1,3 @@
-//! [code]
-
 #include <glad/glad.h>
 #include "View.h"
 #include "Model.h"
@@ -10,8 +8,4 @@ int main(int argc,char *argv[]) {
     View view;
     Controller controller(model,view);
     controller.run();
-
-
 }
-
-//! [code]

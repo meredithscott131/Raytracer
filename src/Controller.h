@@ -17,19 +17,13 @@ public:
     virtual void onkey(int key, int scancode, int action, int mods);
     virtual void error_callback(int error, const char* description);
 
-    void onMouseClick(int button, int action, int mods);        // Callback for mouse button events
-    void onMouseMove(double x, double y);                       // Callback for mouse movement events
-    bool isDragging = false;                                    // Indicates if the mouse is being dragged
-    glm::vec3 lastTrackballPos;                                 // Last position of the trackball
+    void onMouseClick(int button, int action, int mods);
+    void onMouseMove(double x, double y);
 
 private:
     void initScenegraph();
     View view;
     Model model;
-    void createDrone();
-    float time;
-    
-
 };
 
 #endif

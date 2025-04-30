@@ -14,7 +14,8 @@ public:
     glm::vec3 point;                // the coordinates of the intersection point                 
     glm::vec3 normal;               // surface normal at intersection              
     util::Material material;        // material at intersection       
-    bool hit;                       // whether the ray hit an object         
+    bool hit;                       // whether the ray hit an object  
+           
     util::TextureImage* textureImage = nullptr;
     glm::vec2 textureCoordinates = glm::vec2(0.0f);          
 

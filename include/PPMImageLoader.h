@@ -29,7 +29,7 @@ class PPMImageLoader: public ImageLoader {
             if (!fp.is_open())
                 throw std::invalid_argument("File not found!");
 
-            std::cout << "Image file opened" << endl;
+            //std::cout << "Image file opened" << endl;
 
             //read line by line and ignore comments
             std::stringstream input;
