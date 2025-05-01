@@ -1,36 +1,37 @@
-# Assignment 7: Ray Tracing (Continued)
+# Raytracer
+This program is a custom raytracer implemented in C++ using Vecor math and OpenGL that renders 3D scenes defined by scenegraphs. 
 
-### Team
-Thomas Yi and Meredith Scott
+## Features
+- Scenegraph-based hierarchical modeling
+    - Includes object transformation, light translation, and custom object materials
+- Support for primitives: box, sphere, cylinder, and cone
+- Box and sphere texturing using ppm images
+- Lighting and shadows
+- Transparency
+- Reflections
 
-## Working Features
-- Shadows via `View::applyLighting` and `View::calculateSpotlight`
-- Reflections via `View::applyReflection`
-- Texture mapping added to scenegraph parser `RaytracerRenderer.h`and `View::shade()`
+## How to Use
+In the console, navigate to the src folder and enter the following commands.
+```
+mingw32-make clean
+mingw32-make
+./Scene
+[scenegraph_file_name.txt]
+```
+When the viewport is visible, press the `S` key to ray trace the current OpenGL viewport. The final image will be saved as `raytraced_scene.ppm` in the `src/images` folder.
 
-### Images Submitted
-- Final rendered image can be found in src/images/raytraced_scene_final.png
-    - This scene uses spheres, boxes, cones, and cylinders
-    - Contains lighting with shadows
-    - Contains reflective red spheres
-    - Contains textures on sky, leaves, and ground
-    - spotlight can be seen working as part of the screen (front of the scene) is off the radius of the light, rendering it black.
-- OpenGL rendering of the same scene with the same camera position is found at src/images/Final Scene OpenGL Rendering.png
-- scene file used to create this scene is found at src/scenegraphmodels/final-raytrace.txt
+## Gallery 
+### OpenGL Preview
+<img src="src/images/Final Scene OpenGL Rendering.png" alt="OpenGL" width="400"/>
 
-## Extra Credit
-- 2.1 Raytracing supports textures
-- 2.3 Final raytraced scene contains 15+ object instances and depicts a scene of a picnic in the middle of three trees. Uses shadows, reflections for the red ornaments, and texturing for the sky/leaves/ground
+### Final Ray Traced Image
+<img src="src/images/raytraced_scene_final.png" alt="OpenGL" width="400"/>
 
-## Thomas's Contributions
-- 2.1 Texture Mapping
-- 2.2 Refractions (Not working, but code for refractions and Snell's law can be found in View::applyRefraction and View::shade() in View.cpp)
-
-## Meredith's Contributions
-- 1.1 Shadows
-- 1.2 Reflections
-- 2.3 Scene configuration
-
-## Textures Used
+### Textures Used
 - Sky - https://www.turbosquid.com/3d-models/3d-model-toonstyle-skydomeskybox-1098294
-- Ground/Leaves - Custom made `textures/Grass.png`
+- Ground/Leaves - Custom made
+
+## Contributers
+Meredith Scott & Thomas Yi
+
+Starter code provided by Professor Amit Shesh.
