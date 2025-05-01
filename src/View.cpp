@@ -37,7 +37,7 @@ void View::init(Callbacks* callbacks, Model& model)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     // Create a window
-    window = glfwCreateWindow(1000, 1000, "Ray Tracer", NULL, NULL);
+    window = glfwCreateWindow(1000, 1000, "Raytracer", NULL, NULL);
     if (!window) {
         fprintf(stderr, "Failed to create window\n");
         glfwTerminate();
