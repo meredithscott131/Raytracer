@@ -25,6 +25,7 @@ using namespace std;
 
 class View
 {
+    // Represents the location of a light in the scene
     class LightLocation {
         public:
             int position, ambient, diffuse, specular, spotdirection;
@@ -38,26 +39,13 @@ class View
 public:
     View();
     ~View();
-    typedef enum {GLOBAL,CHOPPER,DRONE} TypeOfCamera;
 
     void init(Callbacks* callbacks, Model& model);
-
-    
     void display(Model& model);
     bool shouldWindowClose();
     void closeWindow();
     GLFWwindow* getWindow() const { return window; }
-
-    glm::vec3 convertToTrackball(double x, double y, float radius, int width, int height);
     void updateProjection(int width, int height);
-    glm::mat4 getRotationMatrix() const { return rotationMatrix; }
-    void setRotationMatrix(glm::mat4 rotationMatrix) { this->rotationMatrix = rotationMatrix; }
-    glm::quat getRotationQuat() const { return rotationQuat; }
-    void setRotationQuat(glm::quat rotationQuat) { this->rotationQuat = rotationQuat; }
-
-    void changeCameraMode(TypeOfCamera mode);
-    void updateDroneTransform(const glm::mat4& transform);
-
     void raytrace(Model& model);
 
 private: 
@@ -67,45 +55,57 @@ private:
     util::ShaderLocationsVault shaderLocations;
     map<string,util::ObjectInstance *> objects;
     sgraph::SGNodeVisitor *renderer;
-    int frames;
-    double time;
     glm::mat4 projection;
     stack<glm::mat4> modelview;
     glm::ivec2 window_dimensions;
 
-    sgraph::IScenegraph *sg;                                        // The scenegraph to render
-    glm::mat4 rotationMatrix = glm::mat4(1.0f);                     // The rotation matrix
-    glm::quat rotationQuat = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);     // The rotation quaternion
-    TypeOfCamera cameraMode = GLOBAL;                               // The camera mode
-    glm::vec3 initDronePosition = glm::vec3(0.0f, 10.0f, 50.0f);    // The initial drone position
-    glm::vec3 curDronePosition = initDronePosition;                 // The current drone position
-    glm::vec3 cameraPosition;
-    glm::vec3 cameraTarget;
+    // Helper functions
+    void initObjects(Model& model);                             // Initializes the scenegraph objects
+    void initShaderVariables(vector<util::Light>& lights);      // Initializes the shader variables
+    void setCamera(Model &model);                               // Sets the camera position based on the mode
+    void drawScenegraphModel(Model& model);                     // Draws the model
+    void applyScenegraphLighting();                             // Applies lighting to the scenegraph
 
-    int angleOfRotation;
-    glm::mat4 droneTransform = glm::mat4(1.0f);
-
-    void initObjects(Model& model);
-    void initShaderVariables(vector<util::Light>& lights);
-    void setCamera(TypeOfCamera mode, Model &model);
-
-    vector<LightLocation> lightLocations;
+    sgraph::IScenegraph *sg;                                    // The scenegraph to render
+    glm::vec3 cameraPosition;                                   // The camera position
+    glm::vec3 cameraTarget;                                     // The camera target
+    vector<LightLocation> lightLocations;                       // The light locations
     
 
-    // Raytracing
-    stack<glm::mat4> raytraceModelview;
-    sgraph::RaytracerRenderer *raytracerRenderer;
-    glm::vec3 shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex = 1.0f);
-    glm::vec3 applyLighting(HitRecord &hitRecord, const util::Light &light, const glm::vec3 &n, const glm::vec3 &v);
-    float calculateSpotlight(const util::Light &light, const glm::vec3 &l);
-    glm::vec3 applyReflection(HitRecord &hitRecord, const glm::vec3 &n, const glm::vec3 &v, const glm::vec3 &baseColor, const std::vector<util::Light> &lights, int bounces);
-    glm::vec3 applyRefraction(HitRecord& hitRecord,
-    const glm::vec3& n,
-    const glm::vec3& v,
-    const std::vector<util::Light>& lights,
-    int bounces,
-    float currentRefractiveIndex);
 
+    /********************************************** Raytracing **********************************************/
+
+    stack<glm::mat4> raytraceModelview;                         // The modelview matrix for raytracing
+    sgraph::RaytracerRenderer *raytracerRenderer;               // The raytracer renderer
+
+    // Apply lighting and shading to the hit record
+    glm::vec3 shade(HitRecord& hitRecord,
+        const glm::vec4& viewDir,
+        const std::vector<util::Light>& lights,
+        int bounces,
+        float currentRefractiveIndex = 1.0f);
+    glm::vec3 applyLighting(HitRecord &hitRecord,
+        const util::Light &light,
+        const glm::vec3 &n,
+        const glm::vec3 &v
+    );
+    float calculateSpotlight(const util::Light &light, const glm::vec3 &l);
+
+    // Apply reflection and refraction to the hit record
+    glm::vec3 applyReflection(HitRecord &hitRecord,
+        const glm::vec3 &n,
+        const glm::vec3 &v,
+        const glm::vec3 &baseColor,
+        const std::vector<util::Light> &lights,
+        int bounces
+    );
+    glm::vec3 applyRefraction(HitRecord& hitRecord,
+        const glm::vec3& n,
+        const glm::vec3& v,
+        const std::vector<util::Light>& lights,
+        int bounces,
+        float currentRefractiveIndex
+    );
 };
 
 #endif

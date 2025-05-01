@@ -24,28 +24,27 @@ using namespace std;
 
 namespace sgraph {
     /**
-     * This visitor implements drawing the scene graph using OpenGL
+     * This visitor implements lighting the scenegraph
      * 
      */
-    class GLScenegraphLighter: public SGNodeVisitor {
+    class ScenegraphLighter: public SGNodeVisitor {
 
         class LightLocation {
         public:
             int ambient,diffuse,specular,position;
-            LightLocation()
-            {
-            ambient = diffuse = specular = position = -1;
+            LightLocation() {
+                ambient = diffuse = specular = position = -1;
             }
 
         };
 
         public:
         /**
-         * @brief Construct a new GLScenegraphRenderer object
+         * @brief Construct a new ScenegraphLighter object
          * 
          * @param mv a reference to modelview stack that will be used while rendering
          */
-        GLScenegraphLighter(stack<glm::mat4>& mv,vector<util::Light>& lights, vector<string>& lightCoordinateSystems) 
+        ScenegraphLighter(stack<glm::mat4>& mv,vector<util::Light>& lights, vector<string>& lightCoordinateSystems) 
             : modelview(mv)
             , _lights(lights)
             , _lightCoordinateSystems(lightCoordinateSystems){
@@ -57,9 +56,6 @@ namespace sgraph {
          * @param groupNode 
          */
         void visitGroupNode(GroupNode *groupNode) {
-            //cout << "visitGroupNode()" << endl;
-            //cout << "lights = " << groupNode->getLights().size() << endl
-
             std::vector<util::Light> nodeLights = groupNode->getLights();
             pushLights(nodeLights);
             
@@ -75,9 +71,6 @@ namespace sgraph {
          * @param leafNode 
          */
         void visitLeafNode(LeafNode *leafNode) {
-            //cout << "VisitLeafNode()" << endl;
-            //cout << "lights = " << leafNode->getLights().size() << endl;
-            
             std::vector<util::Light> nodeLights = leafNode->getLights();
             pushLights(nodeLights);
         }
@@ -88,7 +81,6 @@ namespace sgraph {
          * @param transformNode 
          */
         void visitTransformNode(TransformNode * transformNode) {
-            //cout << "lights = " << transformNode->getLights().size() << endl;
             modelview.push(modelview.top());
             modelview.top() = modelview.top() * transformNode->getTransform();
             std::vector<util::Light> nodeLights = transformNode->getLights();
@@ -118,7 +110,6 @@ namespace sgraph {
          * @param translateNode 
          */
         void visitTranslateTransform(TranslateTransform *translateNode) {
-            //cout << "visitTranslateNode()" << endl;
             visitTransformNode(translateNode);
         }
 

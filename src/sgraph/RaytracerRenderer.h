@@ -36,7 +36,7 @@ namespace sgraph {
     class RaytracerRenderer: public SGNodeVisitor {
         public:
             /**
-             * @brief Construct a new GLScenegraphRenderer object
+             * @brief Construct a new RaytracerRenderer object
              */
             RaytracerRenderer(stack<glm::mat4>& mv, Ray ray) : modelview(mv), s(glm::vec4(ray.origin, 1.0f)), v(glm::vec4(ray.direction, 0.0f)) {
                 this->hitRecord = HitRecord(std::numeric_limits<float>::infinity(), glm::vec4(0.0f), glm::vec4(0.0f), util::Material());
@@ -65,7 +65,6 @@ namespace sgraph {
                 glm::vec4 transformedV = inverseTransform * v;
 
                 // Set up the raytrace object based on the type of leaf node
-
                 bool objectKnown = true;
 
                 if (leafNode->getInstanceOf() == "box") raytraceObject = &box;
@@ -168,9 +167,9 @@ namespace sgraph {
             
 
         private:
-            stack<glm::mat4>& modelview; // the modelview matrix stack
-            glm::vec4 s;                 // the camera position
-            glm::vec4 v;                 // the ray direction
+            stack<glm::mat4>& modelview;                // the modelview matrix stack
+            glm::vec4 s;                                // the camera position
+            glm::vec4 v;                                // the ray direction
 
             AbstractRaytraceObject *raytraceObject;     // the abstract raytrace object
             Box box;                                    // the box object

@@ -9,7 +9,7 @@ using namespace std;
 #include <glm/gtc/type_ptr.hpp>
 #include "sgraph/GLScenegraphRenderer.h"
 #include "sgraph/ConsoleScenegraphRenderer.h"
-#include "sgraph/GLScenegraphLighter.h"
+#include "sgraph/ScenegraphLighter.h"
 #include <Light.h>
 #include "VertexAttrib.h"
 #include "sgraph/LeafNode.h"
@@ -36,19 +36,17 @@ void View::init(Callbacks* callbacks, Model& model)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    window = glfwCreateWindow(1000, 1000, "Scene", NULL, NULL);
-
+    // Create a window
+    window = glfwCreateWindow(1000, 1000, "Raytracer", NULL, NULL);
     if (!window) {
         fprintf(stderr, "Failed to create window\n");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
-
     glfwGetFramebufferSize(window, &window_dimensions[0], &window_dimensions[1]);
-
     glfwSetWindowUserPointer(window, callbacks);
 
-    //using C++ functions as callbacks to a C-style library
+    // Using C++ functions as callbacks to a C-style library
     glfwSetKeyCallback(window, 
     [](GLFWwindow* window, int key, int scancode, int action, int mods)
     {
@@ -65,13 +63,11 @@ void View::init(Callbacks* callbacks, Model& model)
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(1);
 
-    // create the shader program
+    // Create the shader program
     program.createProgram(string("shaders/phong-multiple.vert"),
                           string("shaders/phong-multiple.frag"));
-    // assuming it got created, get all the shader variables that it uses
-    // so we can initialize them at some point
-    // enable the shader program
-    
+
+    // Enable the shader program
     program.enable();
     shaderLocations = program.getAllShaderVariables();
 
@@ -81,18 +77,9 @@ void View::init(Callbacks* callbacks, Model& model)
 	int window_width,window_height;
     glfwGetFramebufferSize(window,&window_width,&window_height);
 
-    //prepare the projection matrix for perspective projection
+    // Prepare the projection matrix for perspective projection
 	projection = glm::perspective(glm::radians(60.0f),(float)window_width/window_height,0.1f,10000.0f);
     glViewport(0, 0, window_width,window_height);
-
-    //cout << "Projection Matrix Initialized" << endl;
-    // projection = glm::ortho(-400.0f,400.0f,-400.0f,400.0f,0.1f,10000.0f);
-
-    angleOfRotation = 0;
-    cameraMode = GLOBAL;
-
-    frames = 0;
-    time = glfwGetTime();
     
     // Print the scenegraph to the console
     sgraph::ConsoleScenegraphRenderer* consoleRenderer = new sgraph::ConsoleScenegraphRenderer();
@@ -109,7 +96,6 @@ void View::initObjects(Model& model) {
     shaderVarsToVertexAttribs["vNormal"] = "normal";
     shaderVarsToVertexAttribs["vTexCoord"] = "texcoord";
 
-    
     // Get the list of meshes from the scenegraph
     map<string,util::PolygonMesh<VertexAttrib> > meshes = sg->getMeshes();
     for (typename map<string,util::PolygonMesh<VertexAttrib> >::iterator it=meshes.begin();
@@ -137,6 +123,8 @@ void View::initObjects(Model& model) {
     
     glEnable(GL_TEXTURE_2D);
     vector<string> textureNames = model.getTextureNames();
+
+    // Initialize the textures
     for (string name:textureNames) {
         util::TextureImage *textureObject = model.getTextureObject(name);
         unsigned int textureId;
@@ -147,7 +135,8 @@ void View::initObjects(Model& model) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_LINEAR);
 	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureObject->getWidth(),textureObject->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,textureObject->getImage());
+	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureObject->getWidth(),
+                        textureObject->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE,textureObject->getImage());
         glGenerateMipmap(GL_TEXTURE_2D);
 
         // Assign texture ID directly to corresponding LeafNodes
@@ -159,7 +148,6 @@ void View::initObjects(Model& model) {
             }
         }
     }
-    
 }
 
 // Initialize the lights
@@ -182,12 +170,11 @@ void View::initShaderVariables(vector<util::Light>& lights) {
 // Display the scene
 void View::display(Model& model)
 {
-    program.enable();
-    glClearColor(1,1,1,1);                                  // set the background color to be black
+    program.enable();                                       // enable the program
+    glClearColor(1,1,1,1);                                  // set the background color to be white
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // clear the background
     glEnable(GL_DEPTH_TEST);
-
-    //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE); //outline mode
+    //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);               //outline mode
 
     glUniformMatrix4fv(shaderLocations.getLocation("projection"), 1,
                             false, glm::value_ptr(projection));
@@ -196,53 +183,14 @@ void View::display(Model& model)
         modelview.pop();
     }
     
-    setCamera(cameraMode, model);
+    // Set the camera position given the current camera mode
+    setCamera(model);
 
     // Draw the model
-    for (string name:model.getMeshNames()) {
-        modelview.push(modelview.top());  // save the current modelview
-        glm::mat4 transform =
-            model.getAnimationTransform(name) * model.getTransform(name);
-        modelview.top() = modelview.top() * transform;
-
-        // The total transformation is whatever was passed to it, with its own
-        // transformation
-        glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1,
-                              false, glm::value_ptr(modelview.top()));
-        // set the color for all vertices to be drawn for this object
-        glUniform4fv(shaderLocations.getLocation("vColor"), 1,
-                        glm::value_ptr(model.getMaterial(name).getAmbient()));
-        objects[name]->draw();
-        modelview.pop();
-    }
+    drawScenegraphModel(model);
 
     // Apply lighting to the scenegraph
-    stack<glm::mat4> lighter_mv;
-    lighter_mv.push(modelview.top());
-
-    vector<util::Light> lights;
-    vector<string> coordinates;
-    sgraph::GLScenegraphLighter *lighter = new sgraph::GLScenegraphLighter(lighter_mv, lights, coordinates);
-    
-    sg->getRoot()->accept(lighter);
-
-    initShaderVariables(lights);
-
-    for(int i = 0; i < lights.size(); i++) {
-        glm::vec4 position = lights[i].getPosition();
-        glUniform4fv(lightLocations[i].position, 1, glm::value_ptr(position));
-    }
-
-    glUniform1i(shaderLocations.getLocation("numLights"), lights.size());
-
-    // pass the light properties to the shader
-    for (int i = 0; i < lights.size(); i++) {
-        glUniform3fv(lightLocations[i].ambient, 1, glm::value_ptr(lights[i].getAmbient()));
-        glUniform3fv(lightLocations[i].diffuse, 1, glm::value_ptr(lights[i].getDiffuse()));
-        glUniform3fv(lightLocations[i].specular, 1,glm::value_ptr(lights[i].getSpecular()));
-        glUniform4fv(lightLocations[i].spotdirection, 1,glm::value_ptr(lights[i].getSpotDirection()));
-        glUniform1f(lightLocations[i].spotcutoff,lights[i].getSpotCutoff());
-    }
+    applyScenegraphLighting();
 
     // Draw the scenegraph
     sg->getRoot()->accept(renderer);
@@ -259,14 +207,54 @@ void View::display(Model& model)
     
     glfwSwapBuffers(window);
     glfwPollEvents();
-    frames++;
-    double currenttime = glfwGetTime();
-    if ((currenttime-time)>1.0) {
-        printf("Framerate: %2.0f\r",frames/(currenttime-time));
-        frames = 0;
-        time = currenttime;
-    }
     lightLocations.clear();
+}
+
+// Draws the model
+void View::drawScenegraphModel(Model& model) {
+    for (string name:model.getMeshNames()) {
+        modelview.push(modelview.top());  // save the current modelview
+
+        // The total transformation is whatever was passed to it, with its own transformation
+        glUniformMatrix4fv(shaderLocations.getLocation("modelview"), 1,
+                              false, glm::value_ptr(modelview.top()));
+
+        // Set the color for all vertices to be drawn for this object
+        glUniform4fv(shaderLocations.getLocation("vColor"), 1,
+                        glm::value_ptr(model.getMaterial(name).getAmbient()));
+        
+        objects[name]->draw();
+        modelview.pop();
+    }
+}
+
+// Apply lighting to the scenegraph
+void View::applyScenegraphLighting() {
+    stack<glm::mat4> lighter_mv;
+    lighter_mv.push(modelview.top());
+
+    vector<util::Light> lights;
+    vector<string> coordinates;
+    sgraph::ScenegraphLighter *lighter = new sgraph::ScenegraphLighter(lighter_mv, lights, coordinates);
+    sg->getRoot()->accept(lighter);
+
+    initShaderVariables(lights);
+
+    for(int i = 0; i < lights.size(); i++) {
+        glm::vec4 position = lights[i].getPosition();
+        glUniform4fv(lightLocations[i].position, 1, glm::value_ptr(position));
+    }
+
+    glUniform1i(shaderLocations.getLocation("numLights"), lights.size());
+
+    // Pass the light properties to the shader
+    for (int i = 0; i < lights.size(); i++) {
+        glUniform3fv(lightLocations[i].ambient, 1, glm::value_ptr(lights[i].getAmbient()));
+        glUniform3fv(lightLocations[i].diffuse, 1, glm::value_ptr(lights[i].getDiffuse()));
+        glUniform3fv(lightLocations[i].specular, 1,glm::value_ptr(lights[i].getSpecular()));
+        glUniform4fv(lightLocations[i].spotdirection, 1,glm::value_ptr(lights[i].getSpotDirection()));
+        glUniform1f(lightLocations[i].spotcutoff,lights[i].getSpotCutoff());
+    }
 }
 
 // Raytrace the scene and save it to a PPM file
@@ -283,7 +271,7 @@ void View::raytrace(Model& model) {
     vector<string> coords;
     stack<glm::mat4> mvCopy;
     mvCopy.push(glm::lookAt(cameraPosition, cameraTarget, glm::vec3(0.0f, 1.0f, 0.0f)));
-    sgraph::GLScenegraphLighter lighter(mvCopy, raytraceLights, coords);
+    sgraph::ScenegraphLighter lighter(mvCopy, raytraceLights, coords);
     sg->getRoot()->accept(&lighter);
 
     // Loop through each pixel
@@ -297,7 +285,7 @@ void View::raytrace(Model& model) {
 
             glm::vec4 s(0.0f, 0.0f, 0.0f, 1.0f);    // camera position
             glm::vec4 v(vx, vy, vz, 0.0f);          // ray direction
-            Ray ray(s, v);                          // create a ray
+            Ray ray(s, v);                          // create ray
 
             while (!raytraceModelview.empty()) raytraceModelview.pop();
 
@@ -340,7 +328,9 @@ void View::raytrace(Model& model) {
 }
 
 // Shade the given hit record, considering lighting and reflection
-glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
+glm::vec3 View::shade(HitRecord& hitRecord, const glm::vec4& viewDir, const std::vector<util::Light>& lights,
+    int bounces, float currentRefractiveIndex) {
+
     glm::vec3 color(0.0f);
     glm::vec3 n = glm::normalize(glm::vec3(hitRecord.normal));
     glm::vec3 v = glm::normalize(glm::vec3(viewDir));
@@ -442,7 +432,9 @@ float View::calculateSpotlight(const util::Light& light, const glm::vec3& l) {
 }
 
 // Applies reflection to the given hit record
-glm::vec3 View::applyReflection(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v, const glm::vec3& baseColor, const std::vector<util::Light>& lights, int bounces) {
+glm::vec3 View::applyReflection(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v,
+    const glm::vec3& baseColor, const std::vector<util::Light>& lights, int bounces) {
+
     float reflection = hitRecord.material.getReflection();
     float absorption = hitRecord.material.getAbsorption();
 
@@ -470,7 +462,9 @@ glm::vec3 View::applyReflection(HitRecord& hitRecord, const glm::vec3& n, const 
 }
 
 // Applies refraction onto the objects
-glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v, const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
+glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const glm::vec3& v,
+    const std::vector<util::Light>& lights, int bounces, float currentRefractiveIndex) {
+
     float eta_i = currentRefractiveIndex;
     float eta_t = hitRecord.material.getRefractiveIndex();
     glm::vec3 normal = n;
@@ -545,65 +539,15 @@ glm::vec3 View::applyRefraction(HitRecord& hitRecord, const glm::vec3& n, const 
 }
 
 // Set the camera position given the current camera mode
-void View::setCamera(TypeOfCamera mode, Model& model) {
+void View::setCamera(Model& model) {
     glm::mat4 viewTransform;
     glm::vec3 upVector(0.0f, 1.0f, 0.0f);
     
-    if (cameraMode == GLOBAL)
-    {
-        cameraPosition = glm::vec3(0.0f, 0.0f, 200.0f);
-        cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-    }
-    else if (cameraMode == CHOPPER)
-    {
-        static float angle = 0.0f;
-        float radius = 300.0f;
-        float height = 400.0f;
-
-        cameraPosition = glm::vec3(radius * cos(glm::radians(angle)), height, radius * sin(glm::radians(angle)));
-        cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-        angle += 0.5f;
-        if (angle >= 360.0f) angle -= 360.0f;
-
-        viewTransform = glm::lookAt(cameraPosition, cameraTarget, upVector);
-        modelview.push(viewTransform);
-    }
-    else if (cameraMode == DRONE)
-    {
-        //locating the drone position
-        glm::mat4 droneTransform = model.getAnimationTransform("DroneBody"); // Get latest drone transform
-        glm::vec3 dronePos = glm::vec3(droneTransform[3]);
-
-        //compute forward direction of the drone
-        glm::vec3 forward = glm::normalize(glm::vec3(droneTransform * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
-
-        
-        //offset camera position slightly behind and above the drone
-        cameraPosition = dronePos - forward + glm::vec3(0.0f, 10.0f, 0.0f);
-        cameraTarget = dronePos + forward * 30.0f; 
-
-        viewTransform = glm::lookAt(cameraPosition, cameraTarget, upVector);
-        modelview.push(viewTransform);
-    }
+    cameraPosition = glm::vec3(0.0f, 0.0f, 200.0f);
+    cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 
     viewTransform = glm::lookAt(cameraPosition, cameraTarget, upVector);
     modelview.push(viewTransform);
-}
-
-// Given a mouse position as coordinates,
-// returns a normalized 3D vector representing the projected point on the trackball.
-glm::vec3 View::convertToTrackball(double x, double y, float radius, int width, int height) {
-    // Normalize x and y based on viewport size
-    float normX = (2.0f * x - width) / width;
-    float normY = (height - 2.0f * y) / height;
-
-    // Calculate the square of the length of the vector
-    float lengthSq = normX * normX + normY * normY;
-
-    // If the length is greater than 1, project onto the sphere
-    float normZ = (lengthSq < 1.0f) ? sqrt(1.0f - lengthSq) : 0.0f;
-
-    return glm::normalize(glm::vec3(normX, normY, normZ));
 }
 
 // Update the projection matrix based on the new window size
@@ -614,16 +558,6 @@ void View::updateProjection(int width, int height)
     // Update the projection matrix
     projection = glm::perspective(glm::radians(60.0f),
                             (float)width / (float)height, 0.1f, 1000.0f);
-}
-
-// Set the camera position given the current camera mode
-void View::changeCameraMode(TypeOfCamera mode)
-{
-    cameraMode = mode; 
-}
-
-void View::updateDroneTransform(const glm::mat4& transform) {
-    droneTransform = transform;
 }
 
 bool View::shouldWindowClose() {

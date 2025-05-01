@@ -254,7 +254,7 @@ namespace sgraph {
                     input >> name;
                     string filename;
                     input >> filename;
-                    cout << "path: " << filename << endl;
+                    //cout << "path: " << filename << endl;
                     
                     ImageLoader *loader = new PPMImageLoader();
                     loader->load(filename);
