@@ -24,24 +24,29 @@ Controller::Controller(Model& m,View& v) {
 
 // Initialize the scenegraph by loading it from a file
 void Controller::initScenegraph() {
-    // Opening the scenegraph from the file
-    cout << "Loading scenegraph from file..." << endl;
-    ifstream inFile("scenegraphmodels/final-raytrace.txt");
+    // Ask user to input the file name
+    string filename;
+    cout << "Enter the name of the scenegraph file (e.g., final-raytrace.txt): ";
+    cin >> filename;
+
+    // Construct full path
+    string filepath = "scenegraphmodels/" + filename;
+    ifstream inFile(filepath);
+
     if (!inFile.is_open()) {
-        cerr << "Error opening scenegraph file" << endl;
+        cerr << "Error opening scenegraph file: " << filepath << endl;
         exit(EXIT_FAILURE);
     }
 
-    // Loading the scenegraph from the file
+    // Parse the scenegraph
     sgraph::ScenegraphImporter importer;
     IScenegraph *scenegraph = importer.parse(inFile);
-    if (scenegraph == NULL) {
-        cerr << "Error loading scenegraph from file" << endl;
+    if (scenegraph == nullptr) {
+        cerr << "Error parsing scenegraph from file: " << filepath << endl;
         exit(EXIT_FAILURE);
     }
-    cout << "Scenegraph loaded from file" << endl;
 
-    // Setting the scenegraph in the model
+    cout << "Scenegraph loaded from " << filepath << endl;
     model.setScenegraph(scenegraph);
 }
 
