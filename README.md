@@ -1,5 +1,5 @@
 # Raytracer
-This program is a custom raytracer implemented in C++ using Vecor math and OpenGL that renders 3D scenes defined by scenegraphs. 
+This program is a custom raytracer implemented in C++ using vecor math and OpenGL that renders 3D scenes defined by scenegraphs. 
 
 ## Features
 - Scenegraph-based hierarchical modeling
